@@ -121,7 +121,8 @@
             'QWERTYUIOP',
             'ASDFGHJKL',
             'ZXCVBNM',
-            ['CLEAR', 'SPACE', 'BACK']
+            ['CLEAR', 'SPACE', 'BACK'],
+            ['SPACER']
         ];
 
         rows.forEach((row) => {
@@ -143,36 +144,43 @@
                 // Special row
                 row.forEach(special => {
                     const btn = document.createElement('div');
-                    btn.className = 'kb-key';
-                    if (special === 'CLEAR') {
-                        btn.classList.add('special');
-                        btn.textContent = (typeof t === 'function' ? t('ui_kb_clear') : 'CLEAR');
-                        btn.onclick = (e) => { 
-                            e.preventDefault(); 
-                            cmdInput.value = ''; 
-                            cmdInput.focus(); 
-                        };
-                    } else if (special === 'SPACE') {
-                        btn.classList.add('space');
-                        btn.textContent = (typeof t === 'function' ? t('ui_kb_space') : 'SPACE');
-                        btn.onclick = (e) => { e.preventDefault(); insertChar(' '); };
-                    } else if (special === 'BACK') {
-                        btn.classList.add('backspace');
-                        btn.textContent = '⌫';
-                        btn.onclick = (e) => {
-                            e.preventDefault();
-                            const start = cmdInput.selectionStart;
-                            const end = cmdInput.selectionEnd;
-                            const val = cmdInput.value;
-                            if (start === end && start > 0) {
-                                cmdInput.value = val.slice(0, start - 1) + val.slice(end);
-                                cmdInput.selectionStart = cmdInput.selectionEnd = start - 1;
-                            } else {
-                                cmdInput.value = val.slice(0, start) + val.slice(end);
-                                cmdInput.selectionStart = cmdInput.selectionEnd = start;
-                            }
-                            cmdInput.focus();
-                        };
+                    if (special === 'SPACER') {
+                        btn.className = 'kb-spacer';
+                        btn.style.height = '60px'; // Physical height to push keys up
+                        btn.style.flex = '10';
+                        btn.style.pointerEvents = 'none'; // Non-interactive
+                    } else {
+                        btn.className = 'kb-key';
+                        if (special === 'CLEAR') {
+                            btn.classList.add('special');
+                            btn.textContent = (typeof t === 'function' ? t('ui_kb_clear') : 'CLEAR');
+                            btn.onclick = (e) => { 
+                                e.preventDefault(); 
+                                cmdInput.value = ''; 
+                                cmdInput.focus(); 
+                            };
+                        } else if (special === 'SPACE') {
+                            btn.classList.add('space');
+                            btn.textContent = (typeof t === 'function' ? t('ui_kb_space') : 'SPACE');
+                            btn.onclick = (e) => { e.preventDefault(); insertChar(' '); };
+                        } else if (special === 'BACK') {
+                            btn.classList.add('backspace');
+                            btn.textContent = '⌫';
+                            btn.onclick = (e) => {
+                                e.preventDefault();
+                                const start = cmdInput.selectionStart;
+                                const end = cmdInput.selectionEnd;
+                                const val = cmdInput.value;
+                                if (start === end && start > 0) {
+                                    cmdInput.value = val.slice(0, start - 1) + val.slice(end);
+                                    cmdInput.selectionStart = cmdInput.selectionEnd = start - 1;
+                                } else {
+                                    cmdInput.value = val.slice(0, start) + val.slice(end);
+                                    cmdInput.selectionStart = cmdInput.selectionEnd = start;
+                                }
+                                cmdInput.focus();
+                            };
+                        }
                     }
                     rowDiv.appendChild(btn);
                 });
