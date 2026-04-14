@@ -1705,7 +1705,8 @@ body {
     }
 
     .mobile-mode #input-area {
-        padding-bottom: 20px;
+        padding-bottom: 60px; /* Increased to avoid Android nav bar */
+        padding-bottom: max(60px, env(safe-area-inset-bottom));
     }
 
     .mobile-mode #message-log {
