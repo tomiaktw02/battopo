@@ -1,13 +1,15 @@
 // =========================================================
-// Battopo - 虛擬寵物遊戲（分支進化版）
+// Battopo - ?�擬寵物?�戲（�??�進�??��?
 // =========================================================
 
 (() => {
     'use strict';
 
+    const IS_DEBUG = false; // [VERSION_FLAG] ?�制?�錯?�令?�否?�用
+
     // Debug helper
     window.onerror = function(msg, url, lineNo, columnNo, error) {
-        const errorMsg = `❌ Error: ${msg} [${lineNo}:${columnNo}]`;
+        const errorMsg = `??Error: ${msg} [${lineNo}:${columnNo}]`;
         if (typeof addMsg === 'function') {
             addMsg(errorMsg, 'error');
         } else {
@@ -18,11 +20,11 @@
 
     // ---- Constants ----
     const FRUITS = [
-        { id: 'apple',      emoji: '🍎', img: 'images/apple.png',  nameKey: 'fruit_apple',   color: '#e74c3c' },
-        { id: 'orange',     emoji: '🍊', img: 'images/orange.png', nameKey: 'fruit_orange',  color: '#f39c12' },
-        { id: 'lemon',      emoji: '🍋', img: 'images/lemon.png',  nameKey: 'fruit_lemon',   color: '#f1c40f' },
-        { id: 'grape',      emoji: '🍇', img: 'images/grape.png',  nameKey: 'fruit_grape',   color: '#9b59b6' },
-        { id: 'guava',      emoji: '🍏', img: 'images/guava.png',  nameKey: 'fruit_guava',   color: '#2ecc71' },
+        { id: 'apple',      emoji: '??', img: 'images/apple.png',  nameKey: 'fruit_apple',   color: '#e74c3c' },
+        { id: 'orange',     emoji: '??', img: 'images/orange.png', nameKey: 'fruit_orange',  color: '#f39c12' },
+        { id: 'lemon',      emoji: '??', img: 'images/lemon.png',  nameKey: 'fruit_lemon',   color: '#f1c40f' },
+        { id: 'grape',      emoji: '??', img: 'images/grape.png',  nameKey: 'fruit_grape',   color: '#9b59b6' },
+        { id: 'guava',      emoji: '??', img: 'images/guava.png',  nameKey: 'fruit_guava',   color: '#2ecc71' },
     ];
 
     const MAX_HUNGER = 6;
@@ -198,7 +200,7 @@
             if (ab) {
                 let abClone = { ...ab };
                 if (typeof t === 'function') {
-                    // 使用新的 nameKey 與 descKey
+                    // 使用?��? nameKey ??descKey
                     abClone.name = t(ab.nameKey) || ab.nameKey;
                     abClone.description = t(ab.descKey) || ab.descKey;
                 }
@@ -277,7 +279,7 @@
     }
 
     // ---- Dex (Pokédex) System ----
-    // Stored separately from game save — persists across resets
+    // Stored separately from game save ??persists across resets
     function loadDex() {
         const raw = localStorage.getItem(DEX_KEY);
         if (raw) {
@@ -506,8 +508,8 @@
 
     // Get current emoji
     function getPetEmoji() {
-        if (state.stage === STAGE_EGG) return '🥚';
-        return cachedFormInfo ? cachedFormInfo.emoji : '⚪';
+        if (state.stage === STAGE_EGG) return '??';
+        return cachedFormInfo ? cachedFormInfo.emoji : '??;
     }
 
     // Get current image path
@@ -531,7 +533,7 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        addMsg(`💾 存檔已下載: battopo_${formName}_${dateStr}.json`, 'success');
+        addMsg(`?�� 存�?已�?�? battopo_${formName}_${dateStr}.json`, 'success');
     }
 
     function importSaveFile() {
@@ -823,7 +825,7 @@
 
         petSprite.classList.add('evolve-flash');
         setTimeout(() => petSprite.classList.remove('evolve-flash'), 2000);
-        showEmotion('🎉', 3000);
+        showEmotion('??', 3000);
         updateFormCache();
         save();
         renderAll();
@@ -845,7 +847,7 @@
         }
 
         leaveMessage.innerHTML = `
-            <span class="leave-emoji">😢</span>
+            <span class="leave-emoji">?��</span>
             <p>${reasonText}</p>
             <p style="margin-top:16px;color:var(--accent-warm);font-weight:700;">${t('msg_leave_prompt')}</p>
             <p style="margin-top:8px;color:var(--text-secondary);font-size:14px;">${t('msg_leave_cmd')}</p>
@@ -877,7 +879,7 @@
         save();
 
         leaveMessage.innerHTML = `
-            <span class="leave-emoji">🪦</span>
+            <span class="leave-emoji">?��</span>
             <p>${t('msg_death', petName)}</p>
             <p style="margin-top:4px;color:var(--text-muted);font-size:13px;">${t('msg_death_sub')}</p>
             <p style="margin-top:20px;color:var(--accent-warm);font-weight:700;">${t('msg_leave_prompt')}</p>
@@ -973,7 +975,7 @@
 
     function renderName() {
         if (state.stage === STAGE_EGG) {
-            petNameDisplay.textContent = `🥚 ${t('ui_egg')}`;
+            petNameDisplay.textContent = `?? ${t('ui_egg')}`;
         } else {
             const displayName = getPetName();
             const emoji = getPetEmoji();
@@ -1017,7 +1019,7 @@
                 tombstone = document.createElement('div');
                 tombstone.id = 'tombstone-display';
                 tombstone.className = 'tombstone-emoji';
-                tombstone.textContent = '🪦';
+                tombstone.textContent = '?��';
                 wrapper.appendChild(tombstone);
             }
             tombstone.style.display = 'block';
@@ -1045,7 +1047,7 @@
         for (let i = 0; i < state.poopCount; i++) {
             const p = document.createElement('div');
             p.className = 'poop';
-            p.textContent = '💩';
+            p.textContent = '?��';
             p.style.animationDelay = `${i * 0.1}s`;
             poopArea.appendChild(p);
         }
@@ -1056,10 +1058,10 @@
         if (battleState) return; // Hide actions during battle
 
         const systemActions = [
-            { id: 'hof',  emoji: '🏆', label: 'HOF',  desc: t('ui_hof_desc') },
-            { id: 'dex',  emoji: '📖', label: 'DEX',  desc: t('ui_dex_desc') },
-            { id: 'save', emoji: '💾', label: 'SAVE', desc: t('ui_save_desc') },
-            { id: 'load', emoji: '📂', label: 'LOAD', desc: t('ui_load_desc') },
+            { id: 'hof',  emoji: '??', label: 'HOF',  desc: t('ui_hof_desc') },
+            { id: 'dex',  emoji: '??', label: 'DEX',  desc: t('ui_dex_desc') },
+            { id: 'save', emoji: '?��', label: 'SAVE', desc: t('ui_save_desc') },
+            { id: 'load', emoji: '??', label: 'LOAD', desc: t('ui_load_desc') },
         ];
 
         if (state.left || state.dead) {
@@ -1068,13 +1070,13 @@
         }
 
         const actions = state.stage === STAGE_EGG
-            ? [{ id: 'knock', emoji: '👊', label: 'KNOCK', desc: t('ui_knock_desc') }]
+            ? [{ id: 'knock', emoji: '??', label: 'KNOCK', desc: t('ui_knock_desc') }]
             : [
-                { id: 'feed',   emoji: '🍎', label: 'FEED',   desc: t('ui_feed_desc') },
-                { id: 'clean',  emoji: '🚿', label: 'CLEAN',  desc: t('ui_clean_desc') },
-                { id: 'play',   emoji: '✌️', label: 'PLAY',   desc: t('ui_play_desc') },
-                { id: 'battle', emoji: '⚔️', label: 'BATTLE', desc: t('ui_battle_desc') },
-                { id: 'rename', emoji: '✏️', label: 'RENAME', desc: t('ui_rename_desc') },
+                { id: 'feed',   emoji: '??', label: 'FEED',   desc: t('ui_feed_desc') },
+                { id: 'clean',  emoji: '?��', label: 'CLEAN',  desc: t('ui_clean_desc') },
+                { id: 'play',   emoji: '?��?', label: 'PLAY',   desc: t('ui_play_desc') },
+                { id: 'battle', emoji: '?��?', label: 'BATTLE', desc: t('ui_battle_desc') },
+                { id: 'rename', emoji: '?��?', label: 'RENAME', desc: t('ui_rename_desc') },
             ];
 
         // Combine breed actions and system actions
@@ -1222,155 +1224,157 @@
         }
 
         // Debug commands
-        if (cmd === 'debughunger') {
-            if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
-            state.hunger = Math.max(0, state.hunger - 1);
-            if (state.hunger === 0 && !state.hungerZeroSince) state.hungerZeroSince = Date.now();
-            addMsg(t('msg_debug_stat', 'hunger', getStatDesc('hunger', state.hunger).text), 'warning');
-            save(); renderStats(); return;
-        }
-        if (cmd === 'debughappy') {
-            if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
-            state.happy = Math.max(0, state.happy - 1);
-            if (state.happy === 0 && !state.happyZeroSince) state.happyZeroSince = Date.now();
-            addMsg(t('msg_debug_stat', 'happy', getStatDesc('happy', state.happy).text), 'warning');
-            save(); renderStats(); return;
-        }
-        if (cmd === 'debugpoop') {
-            if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
-            state.poopCount = Math.min(MAX_POOP, state.poopCount + 1);
-            if (state.poopCount > 0 && !state.poopDirtySince) state.poopDirtySince = Date.now();
-            addMsg(t('msg_debug_stat', 'poop', getStatDesc('poop', state.poopCount).text), 'warning');
-            save(); renderPoops(); return;
-        }
-        if (cmd === 'debugreset') {
-            localStorage.removeItem(SAVE_KEY);
-            state = defaultState();
-            leaveOverlay.classList.add('hidden');
-            rpsOverlay.classList.add('hidden');
-            dexOverlay.classList.add('hidden');
-            msgLog.innerHTML = '';
-            addMsg(t('msg_debug_reset'), 'warning');
-            save();
-            renderAll();
-            return;
-        }
-        if (cmd.startsWith('debugbattle')) {
-            const parts = cmd.split(/\s+/);
-            if (parts.length >= 2) {
-                const targetId = parts[1];
-                const opponent = getFormInfo(targetId);
-                if (opponent) {
-                    startBattle(opponent);
-                    return;
+        if (IS_DEBUG) {
+            if (cmd === 'debughunger') {
+                if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
+                state.hunger = Math.max(0, state.hunger - 1);
+                if (state.hunger === 0 && !state.hungerZeroSince) state.hungerZeroSince = Date.now();
+                addMsg(t('msg_debug_stat', 'hunger', getStatDesc('hunger', state.hunger).text), 'warning');
+                save(); renderStats(); return;
+            }
+            if (cmd === 'debughappy') {
+                if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
+                state.happy = Math.max(0, state.happy - 1);
+                if (state.happy === 0 && !state.happyZeroSince) state.happyZeroSince = Date.now();
+                addMsg(t('msg_debug_stat', 'happy', getStatDesc('happy', state.happy).text), 'warning');
+                save(); renderStats(); return;
+            }
+            if (cmd === 'debugpoop') {
+                if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
+                state.poopCount = Math.min(MAX_POOP, state.poopCount + 1);
+                if (state.poopCount > 0 && !state.poopDirtySince) state.poopDirtySince = Date.now();
+                addMsg(t('msg_debug_stat', 'poop', getStatDesc('poop', state.poopCount).text), 'warning');
+                save(); renderPoops(); return;
+            }
+            if (cmd === 'debugreset') {
+                localStorage.removeItem(SAVE_KEY);
+                state = defaultState();
+                leaveOverlay.classList.add('hidden');
+                rpsOverlay.classList.add('hidden');
+                dexOverlay.classList.add('hidden');
+                msgLog.innerHTML = '';
+                addMsg(t('msg_debug_reset'), 'warning');
+                save();
+                renderAll();
+                return;
+            }
+            if (cmd.startsWith('debugbattle')) {
+                const parts = cmd.split(/\s+/);
+                if (parts.length >= 2) {
+                    const targetId = parts[1];
+                    const opponent = getFormInfo(targetId);
+                    if (opponent) {
+                        startBattle(opponent);
+                        return;
+                    }
                 }
+                addMsg("??Usage: debugbattle [pet_id]", 'warning');
+                return;
             }
-            addMsg("❌ Usage: debugbattle [pet_id]", 'warning');
-            return;
-        }
-        if (cmd === 'debugdexall') {
-            const allForms = getAllPetForms();
-            const dex = loadDex();
-            for (const form of allForms) {
-                if (!dex[form.id]) {
-                    dex[form.id] = {
-                        id: form.id,
-                        name: form.name,
-                        emoji: form.emoji,
-                        unlockedAt: Date.now()
-                    };
-                }
-            }
-            saveDex(dex);
-            addMsg(t('msg_debug_dex_all', allForms.length), 'warning');
-            return;
-        }
-        if (cmd === 'debugdexclear') {
-            localStorage.removeItem(DEX_KEY);
-            addMsg(t('msg_debug_dex_clear'), 'warning');
-            return;
-        }
-        if (cmd === 'debugstatus' || cmd === 'status') {
-            doStatus();
-            return;
-        }
-        if (cmd === 'debugdeath') {
-            if (state.stage < STAGE_EVO2) { addMsg(t('msg_debug_death_err'), 'warning'); return; }
-            triggerDeath();
-            return;
-        }
-        if (cmd === 'debughofclear') {
-            localStorage.removeItem(HOF_KEY);
-            addMsg(t('msg_debug_hof_clear'), 'warning');
-            return;
-        }
-        if (cmd === 'debugevolve') {
-            if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg_hatch_err'), 'warning'); return; }
-            if (state.stage >= STAGE_EVO2) { addMsg(t('msg_debug_evo_err'), 'warning'); return; }
-
-            if (state.stage === STAGE_BABY) {
-                const target = determineStage1Evolution();
-                evolveToForm(STAGE_EVO1, target);
-                addMsg(t('msg_debug_evo1'), 'warning');
-            } else if (state.stage === STAGE_EVO1) {
-                const target = determineStage2Evolution();
-                evolveToForm(STAGE_EVO2, target);
-                addMsg(t('msg_debug_evo2'), 'warning');
-            }
-            return;
-        }
-        if (cmd.startsWith('debugfeed')) {
-            // debugfeed apple 5 — add 5 to apple count
-            const parts = cmd.split(/\s+/);
-            if (parts.length >= 3) {
-                const fruitId = parts[1];
-                const amount = parseInt(parts[2]);
-                if (state.feedCount[fruitId] !== undefined && !isNaN(amount)) {
-                    state.feedCount[fruitId] += amount;
-                    addMsg(t('msg_debug_feed', fruitId, amount, state.feedCount[fruitId]), 'warning');
-                    save();
-                    return;
-                }
-            }
-            addMsg(t('msg_debug_feed_usage'), 'warning');
-            return;
-        }
-        if (cmd.startsWith('debugsetpet')) {
-            const parts = cmd.split(/\s+/);
-            if (parts.length >= 2) {
-                const targetId = parts[1];
+            if (cmd === 'debugdexall') {
                 const allForms = getAllPetForms();
-                const targetForm = allForms.find(f => f.id === targetId);
-                
-                if (targetForm) {
-                    state.currentFormId = targetForm.id;
-                    state.evolvedAt = Date.now();
-                    
-                    // Map stage string to constant
-                    if (targetForm.stage === 'baby') state.stage = STAGE_BABY;
-                    else if (targetForm.stage === 'stage1') {
-                        state.stage = STAGE_EVO1;
-                        state.evolutionPathId = targetForm.id;
+                const dex = loadDex();
+                for (const form of allForms) {
+                    if (!dex[form.id]) {
+                        dex[form.id] = {
+                            id: form.id,
+                            name: form.name,
+                            emoji: form.emoji,
+                            unlockedAt: Date.now()
+                        };
                     }
-                    else if (targetForm.stage === 'stage2') {
-                        state.stage = STAGE_EVO2;
-                        if (targetForm.parentId) state.evolutionPathId = targetForm.parentId;
-                    }
-                    
-                    if (targetForm.stats) {
-                        state.stats = { ...targetForm.stats };
-                        state.maxHP = targetForm.stats.hp;
-                    }
-                    
-                    addMsg(t('msg_debug_setpet', targetForm.emoji, targetForm.name), 'warning');
-                    registerToDex(targetForm.id);
-                    save();
-                    renderAll();
-                    return;
                 }
+                saveDex(dex);
+                addMsg(t('msg_debug_dex_all', allForms.length), 'warning');
+                return;
             }
-            addMsg(t('msg_debug_setpet_usage'), 'warning');
-            return;
+            if (cmd === 'debugdexclear') {
+                localStorage.removeItem(DEX_KEY);
+                addMsg(t('msg_debug_dex_clear'), 'warning');
+                return;
+            }
+            if (cmd === 'debugstatus' || cmd === 'status') {
+                doStatus();
+                return;
+            }
+            if (cmd === 'debugdeath') {
+                if (state.stage < STAGE_EVO2) { addMsg(t('msg_debug_death_err'), 'warning'); return; }
+                triggerDeath();
+                return;
+            }
+            if (cmd === 'debughofclear') {
+                localStorage.removeItem(HOF_KEY);
+                addMsg(t('msg_debug_hof_clear'), 'warning');
+                return;
+            }
+            if (cmd === 'debugevolve') {
+                if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg_hatch_err'), 'warning'); return; }
+                if (state.stage >= STAGE_EVO2) { addMsg(t('msg_debug_evo_err'), 'warning'); return; }
+
+                if (state.stage === STAGE_BABY) {
+                    const target = determineStage1Evolution();
+                    evolveToForm(STAGE_EVO1, target);
+                    addMsg(t('msg_debug_evo1'), 'warning');
+                } else if (state.stage === STAGE_EVO1) {
+                    const target = determineStage2Evolution();
+                    evolveToForm(STAGE_EVO2, target);
+                    addMsg(t('msg_debug_evo2'), 'warning');
+                }
+                return;
+            }
+            if (cmd.startsWith('debugfeed')) {
+                // debugfeed apple 5 ??add 5 to apple count
+                const parts = cmd.split(/\s+/);
+                if (parts.length >= 3) {
+                    const fruitId = parts[1];
+                    const amount = parseInt(parts[2]);
+                    if (state.feedCount[fruitId] !== undefined && !isNaN(amount)) {
+                        state.feedCount[fruitId] += amount;
+                        addMsg(t('msg_debug_feed', fruitId, amount, state.feedCount[fruitId]), 'warning');
+                        save();
+                        return;
+                    }
+                }
+                addMsg(t('msg_debug_feed_usage'), 'warning');
+                return;
+            }
+            if (cmd.startsWith('debugsetpet')) {
+                const parts = cmd.split(/\s+/);
+                if (parts.length >= 2) {
+                    const targetId = parts[1];
+                    const allForms = getAllPetForms();
+                    const targetForm = allForms.find(f => f.id === targetId);
+                    
+                    if (targetForm) {
+                        state.currentFormId = targetForm.id;
+                        state.evolvedAt = Date.now();
+                        
+                        // Map stage string to constant
+                        if (targetForm.stage === 'baby') state.stage = STAGE_BABY;
+                        else if (targetForm.stage === 'stage1') {
+                            state.stage = STAGE_EVO1;
+                            state.evolutionPathId = targetForm.id;
+                        }
+                        else if (targetForm.stage === 'stage2') {
+                            state.stage = STAGE_EVO2;
+                            if (targetForm.parentId) state.evolutionPathId = targetForm.parentId;
+                        }
+                        
+                        if (targetForm.stats) {
+                            state.stats = { ...targetForm.stats };
+                            state.maxHP = targetForm.stats.hp;
+                        }
+                        
+                        addMsg(t('msg_debug_setpet', targetForm.emoji, targetForm.name), 'warning');
+                        registerToDex(targetForm.id);
+                        save();
+                        renderAll();
+                        return;
+                    }
+                }
+                addMsg(t('msg_debug_setpet_usage'), 'warning');
+                return;
+            }
         }
 
         if (state.left || state.dead) {
@@ -1459,7 +1463,7 @@
                 
                 petSprite.classList.add('hatch-glow');
                 setTimeout(() => petSprite.classList.remove('hatch-glow'), 1500);
-                showEmotion('🎉', 3000);
+                showEmotion('??', 3000);
                 updateFormCache();
                 save();
                 renderAll();
@@ -1491,7 +1495,7 @@
 
         const fruitName = t(fruit.nameKey) || fruit.id;
         addMsg(t('msg_feed_success', fruit.emoji, fruitName, getPetName(), getStatDesc('hunger', state.hunger).text), 'success');
-        showEmotion('😋');
+        showEmotion('??');
         petSprite.classList.add('happy-jump');
         setTimeout(() => petSprite.classList.remove('happy-jump'), 600);
         save();
@@ -1555,7 +1559,7 @@
 
         cleanOverlay.classList.remove('hidden');
         cmdInput.placeholder = t('ui_clean_placeholder') || 'Type English name...';
-        addMsg(t('msg_clean_start') || '🧹 發現蟲蟲！請輸入牠的英文名稱。', 'info');
+        addMsg(t('msg_clean_start') || '?�� ?�現?�蟲！�?輸入?��??��??�稱??, 'info');
         renderPoops();
     }
 
@@ -1578,14 +1582,14 @@
             if (state.poopCount === 0) state.poopDirtySince = null;
 
             addMsg(t('msg_clean_success', getStatDesc('poop', state.poopCount).text), 'success');
-            showEmotion('🧹');
+            showEmotion('?��');
             
             closeClean();
             save();
             renderAll();
         } else {
             // Wrong name
-            addMsg(t('msg_clean_wrong') || '❌ 名稱錯誤！請再試一次。', 'error');
+            addMsg(t('msg_clean_wrong') || '???�稱?�誤！�??�試一次�?, 'error');
             // Optional: shake the modal
             const modal = $('clean-modal');
             modal.style.animation = 'none';
@@ -1673,7 +1677,7 @@
             rpsResult.textContent = `VS: ${choiceNameZh[petChoice]}`;
             rpsResult.className = 'win';
             addMsg(t('msg_rps_win', getPetName()), 'warning');
-            showEmotion('😢', 2500);
+            showEmotion('?��', 2500);
             petSprite.classList.add('sad-shake');
             setTimeout(() => petSprite.classList.remove('sad-shake'), 800);
         } else {
@@ -1683,7 +1687,7 @@
             state.happy = Math.min(MAX_HAPPY, state.happy + 1);
             if (state.happy > 0) state.happyZeroSince = null;
             addMsg(t('msg_rps_lose', getPetName(), getStatDesc('happy', state.happy).text), 'success');
-            showEmotion('😄', 2500);
+            showEmotion('??', 2500);
             petSprite.classList.add('happy-jump');
             setTimeout(() => petSprite.classList.remove('happy-jump'), 600);
             renderStats();
@@ -1733,10 +1737,10 @@
             renderStats();
         }
 
-        // 準備戰鬥數據
+        // 準�??�鬥?��?
         const pInfo = getFormInfo(state.currentFormId);
         if (!pInfo) {
-            addMsg("❌ Error: Pet info not found. Please try hatching/evolving again.", 'error');
+            addMsg("??Error: Pet info not found. Please try hatching/evolving again.", 'error');
             return;
         }
 
@@ -1757,7 +1761,7 @@
             img: opponent.img
         };
 
-        // 使用計算中心預算結果
+        // 使用計�?中�??��?結�?
         const log = BattleEngine.simulate(pData, oData, state.battleDebug);
 
         battleState = {
@@ -1779,8 +1783,7 @@
         updateBattleHP();
         setBattleMsg(t('msg_battle_start', battleState.opponent.name));
 
-        // 處理戰鬥前效果
-        if (log.preBattle && log.preBattle.length > 0) {
+        // ?��??�鬥?��???        if (log.preBattle && log.preBattle.length > 0) {
             for (const effect of log.preBattle) {
                 await new Promise(r => setTimeout(r, 500));
                 setBattleMsg(t('msg_battle_ability', effect.ability, effect.msg));
@@ -1828,17 +1831,17 @@
         if (!state.battleDebug) {
             // Optimization: combined mask processing
             const replacements = [
-                { reg: /受到\s*\d+\s*點傷害/g, val: t('msg_battle_dmg') },
+                { reg: /?�到\s*\d+\s*點傷�?g, val: t('msg_battle_dmg') },
                 { reg: /HP\s*-\d+/gi, val: t('msg_battle_dmg') },
                 { reg: /HP\s*\+\d+/gi, val: t('msg_battle_heal') },
-                { reg: /恢復了\s*\d+\s*點\s*HP/g, val: t('msg_battle_heal') },
-                { reg: /(攻擊力|atk).*?\+\d+/gi, val: t('msg_battle_atk_up') },
-                { reg: /(攻擊力|atk).*?-\d+/gi, val: t('msg_battle_atk_down') },
-                { reg: /(防禦力|def).*?\+\d+/gi, val: t('msg_battle_def_up') },
-                { reg: /(防禦力|def).*?-\d+/gi, val: t('msg_battle_def_down') },
-                { reg: /(速度|spd).*?\+\d+/gi, val: t('msg_battle_spd_up') },
-                { reg: /(速度|spd).*?-\d+/gi, val: t('msg_battle_spd_down') },
-                { reg: /傷害\s*\+\s*\d+/g, val: t('msg_battle_dmg_up') }
+                { reg: /?�復了\s*\d+\s*點\s*HP/g, val: t('msg_battle_heal') },
+                { reg: /(?��??�|atk).*?\+\d+/gi, val: t('msg_battle_atk_up') },
+                { reg: /(?��??�|atk).*?-\d+/gi, val: t('msg_battle_atk_down') },
+                { reg: /(?�禦?�|def).*?\+\d+/gi, val: t('msg_battle_def_up') },
+                { reg: /(?�禦?�|def).*?-\d+/gi, val: t('msg_battle_def_down') },
+                { reg: /(?�度|spd).*?\+\d+/gi, val: t('msg_battle_spd_up') },
+                { reg: /(?�度|spd).*?-\d+/gi, val: t('msg_battle_spd_down') },
+                { reg: /?�害\s*\+\s*\d+/g, val: t('msg_battle_dmg_up') }
             ];
             replacements.forEach(r => txt = txt.replace(r.reg, r.val));
         }
@@ -1926,8 +1929,7 @@
             }
         }
 
-        // 處理技能觸發日誌
-        if (action.triggers && action.triggers.length > 0) {
+        // ?��??�?�觸?�日�?        if (action.triggers && action.triggers.length > 0) {
             for (const trigger of action.triggers) {
                 if (state.battleDebug) {
                     addMsg(t('msg_battle_ability', trigger.name, trigger.msg), 'success');
@@ -1981,7 +1983,7 @@
             
             const p = document.createElement('div');
             p.className = 'projectile';
-            p.textContent = '💩';
+            p.textContent = '?��';
             
             const colors = ['p-red', 'p-blue', 'p-green', 'p-yellow', 'p-purple', 'p-orange'];
             p.classList.add(colors[Math.floor(Math.random() * colors.length)]);
@@ -2041,13 +2043,13 @@
             const msg = t('msg_battle_lose', getPetName());
             addMsg(msg, 'warning');
             setBattleMsg(msg); // Show in battle UI too
-            showEmotion('😢');
+            showEmotion('?��');
         }
 
         save();
         renderStats();
 
-        // 如果開啟了詳細 log，則將戰鬥訊息存成 txt
+        // 如�??��?了詳�?log，�?將戰鬥�??��???txt
         if (state.battleDebug && battleState.battleLog) {
             const detailedLog = BattleEngine.generateTextLog(battleState.battleLog);
             const blob = new Blob([detailedLog], { type: 'text/plain' });
@@ -2073,8 +2075,7 @@
         localStorage.removeItem(SAVE_KEY);
         state = defaultState();
         leaveOverlay.classList.add('hidden');
-        msgLog.innerHTML = ''; // 清空訊息紀錄
-        addMsg(t('msg_egg_intro'), 'success');
+        msgLog.innerHTML = ''; // 清空訊息紀??        addMsg(t('msg_egg_intro'), 'success');
         save();
         renderAll();
     }

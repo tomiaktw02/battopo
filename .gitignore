@@ -3,6 +3,7 @@ simulation_stage1.html
 simulation_stage2.html
 simulate_battles.js
 start_server.bat
+deploy.bat
 server.ps1
 
 # --- Development Documents ---
