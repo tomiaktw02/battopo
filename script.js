@@ -146,7 +146,7 @@
                     const btn = document.createElement('div');
                     if (special === 'SPACER') {
                         btn.className = 'kb-spacer';
-                        btn.style.height = '60px'; // Physical height to push keys up
+                        btn.style.height = '30px'; // Physical height to push keys up
                         btn.style.flex = '10';
                         btn.style.pointerEvents = 'none'; // Non-interactive
                     } else {
