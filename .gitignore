@@ -1,0 +1,20 @@
+# --- Development & Testing Tools ---
+simulation_stage1.html
+simulation_stage2.html
+simulate_battles.js
+start_server.bat
+server.ps1
+
+# --- Development Documents ---
+battle_blance_note.txt
+evolution_tree.txt
+debug_commands.txt
+
+# --- AI & Editor Config ---
+.cursorrules
+.vscode/
+
+# --- System & Logs ---
+.DS_Store
+Thumbs.db
+*.log

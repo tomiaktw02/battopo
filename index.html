@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Battopo 虛擬寵物遊戲 - 培育你的小寵物，看著牠成長進化為不同型態！">
+    <title>Battopo | 貝哆寶</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="language_config.js"></script>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Header: Name & Stats -->
+        <header id="game-header">
+            <div id="header-top-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div id="pet-name-display" data-i18n="ui_egg_name">🥚 蛋</div>
+                <div id="lang-btn-display" style="font-size: 10px; color: var(--text-secondary); cursor: help; display: flex; flex-direction: column; align-items: flex-end;">
+                    <div class="lang-tooltip">
+                        <span class="tooltip-name" data-i18n="ui_lang_title">語言/Language</span>
+                        <span class="tooltip-desc" data-i18n="ui_lang_tooltip">切換遊戲語言設定</span>
+                    </div>
+                    <span style="font-size: 16px;">🌐</span>
+                    <span>lang</span>
+                </div>
+            </div>
+            <div id="stats-bar">
+                <div class="stat-row">
+                    <span class="stat-label" data-i18n="ui_hunger">🍎 飽食度</span>
+                    <div class="stat-hearts" id="hunger-bar"></div>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label" data-i18n="ui_happy">😊 快樂度</span>
+                    <div class="stat-hearts" id="happy-bar"></div>
+                </div>
+            </div>
+            <div id="evolution-timer"></div>
+        </header>
+
+        <!-- Main Area -->
+        <div id="main-area">
+            <!-- Left: Action Buttons -->
+            <aside id="action-panel">
+                <div id="action-buttons">
+                    <!-- The buttons will be dynamically rendered by JS, but we need the static structure for the new button if we want to ensure it is there or just let JS handle it.
+                    Actually, script.js renders these dynamically based on the pet stage.
+                    Wait, let me check script.js how it renders action buttons. -->
+                </div>
+            </aside>
+
+            <!-- Center: Pet Display -->
+            <div id="pet-stage">
+                <!-- Battle Overlay -->
+                <div id="battle-overlay" class="hidden">
+                    <div id="battle-scene">
+                        <div id="battle-opponent-area">
+                            <div class="battle-pet-container" id="opponent-container">
+                                <div class="battle-hp-bar-wrapper">
+                                    <div class="battle-hp-bar" id="opponent-hp-bar"></div>
+                                </div>
+                                <img id="opponent-sprite" class="battle-sprite" src="" alt="對手">
+                                <div id="opponent-name-tag"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="battle-projectile-layer"></div>
+
+                        <div id="battle-player-area">
+                            <div class="battle-pet-container" id="player-container">
+                                <div class="battle-hp-bar-wrapper">
+                                    <div class="battle-hp-bar" id="player-hp-bar"></div>
+                                </div>
+                                <img id="player-sprite" class="battle-sprite" src="" alt="玩家">
+                                <div id="player-name-tag"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="battle-msg-box">
+                            <div id="battle-msg-text" data-i18n="ui_combat_start">戰鬥開始！</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pet-sprite-wrapper">
+                    <img id="pet-sprite" src="images/egg.png" alt="寶可夢">
+                    <div id="egg-crack-overlay"></div>
+                </div>
+                <div id="poop-area"></div>
+                <div id="emotion-bubble" class="hidden"></div>
+            </div>
+        </div>
+
+        <!-- Bottom: Input -->
+        <div id="input-area">
+            <div id="message-log"></div>
+            <div id="input-row">
+                <span class="input-prompt">▶</span>
+                <input type="text" id="command-input" placeholder="輸入指令 (英文)..." autocomplete="off" spellcheck="false">
+                <button id="submit-btn">ENTER</button>
+            </div>
+        </div>
+
+        <!-- RPS Overlay -->
+        <div id="rps-overlay" class="hidden">
+            <div id="rps-modal">
+                <h2 data-i18n="ui_rps_title">✌️ 猜拳遊戲 ✌️</h2>
+                <p data-i18n="ui_rps_desc">輸入: <strong>scissors</strong>, <strong>rock</strong>, 或 <strong>paper</strong></p>
+                <div id="rps-choices">
+                    <div class="rps-choice" data-choice="scissors">
+                        <span class="rps-emoji">✌️</span>
+                        <span class="rps-label" data-i18n="ui_scissors">剪刀</span>
+                        <span class="rps-cmd">scissors</span>
+                    </div>
+                    <div class="rps-choice" data-choice="rock">
+                        <span class="rps-emoji">✊</span>
+                        <span class="rps-label" data-i18n="ui_rock">石頭</span>
+                        <span class="rps-cmd">rock</span>
+                    </div>
+                    <div class="rps-choice" data-choice="paper">
+                        <span class="rps-emoji">🖐️</span>
+                        <span class="rps-label" data-i18n="ui_paper">布</span>
+                        <span class="rps-cmd">paper</span>
+                    </div>
+                </div>
+                <div id="rps-result" class="hidden"></div>
+            </div>
+        </div>
+
+        <!-- Feed Overlay -->
+        <div id="feed-overlay" class="hidden">
+            <div id="feed-modal">
+                <h2 data-i18n="ui_feed_title">🍎 餵食寵物 🍎</h2>
+                <p data-i18n="ui_feed_desc">選擇要餵食的水果：</p>
+                <div id="feed-choices"></div>
+                <div id="feed-back-btn" class="feed-choice" style="width: 100px; margin: 0 auto; padding: 10px 4px;">
+                    <span class="feed-choice-name" data-i18n="ui_back">返回</span>
+                    <span class="feed-choice-cmd">back</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Language Overlay -->
+        <div id="lang-overlay" class="hidden">
+            <div id="lang-modal" style="background:var(--bg-panel); border:2px solid var(--border-color); border-radius:12px; padding:20px; width:90%; max-width:400px; text-align:center;">
+                <h2 data-i18n="ui_lang_title">🌐 語言設定 / Language 🌐</h2>
+                <p data-i18n="ui_lang_desc" style="margin-bottom:15px; font-size:12px; color:var(--text-secondary);">選擇遊戲語言 / Select Game Language:</p>
+                <div id="lang-choices" style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="lang-choice" style="background:var(--bg-dark); border:1px solid var(--border-color); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>🌐 English</span>
+                        <span style="color:var(--accent-info); font-family:var(--font-pixel);">english</span>
+                    </div>
+                    <div class="lang-choice" style="background:var(--bg-dark); border:1px solid var(--border-color); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>🇹🇼 繁體中文</span>
+                        <span style="color:var(--accent-info); font-family:var(--font-pixel);">chinese</span>
+                    </div>
+                    <div class="lang-choice" style="background:var(--bg-dark); border:1px solid var(--border-color); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>🇯🇵 日本語</span>
+                        <span style="color:var(--accent-info); font-family:var(--font-pixel);">japanese</span>
+                    </div>
+                </div>
+                <div id="lang-back-btn" class="feed-choice" style="width: 100px; margin: 15px auto 0; padding: 10px 4px;">
+                    <span class="feed-choice-name" data-i18n="ui_back">返回</span>
+                    <span class="feed-choice-cmd">back</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dex (Pokedex) Overlay -->
+        <div id="dex-overlay" class="hidden">
+            <div id="dex-modal">
+                <div id="dex-header">
+                    <h2 data-i18n="ui_dex_title">📖 圖鑑</h2>
+                    <div id="dex-progress"></div>
+                </div>
+                <div id="dex-grid"></div>
+                <div id="dex-back-btn" class="hof-back-item">
+                    <span class="hof-back-label" data-i18n="ui_back">返回</span>
+                    <span class="hof-back-cmd">back</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hall of Fame (Heroes Board) Overlay -->
+        <div id="hof-overlay" class="hidden">
+            <div id="hof-modal">
+                <div id="hof-header">
+                    <h2 data-i18n="ui_hof_title">🏆 英雄榜</h2>
+                    <p data-i18n="ui_hof_desc">記念那些曾經陪伴我們的夥伴</p>
+                </div>
+                <div id="hof-list"></div>
+                <div id="hof-close-btn" class="hof-back-item">
+                    <span class="hof-back-label" data-i18n="ui_back">返回</span>
+                    <span class="hof-back-cmd">back</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leave / Restart Overlay -->
+        <div id="leave-overlay" class="hidden">
+            <div id="leave-modal">
+                <div id="leave-message"></div>
+                <!-- 按鈕已被移除，改用指令 'egg' 重新開始 -->
+            </div>
+        </div>
+
+        <!-- Clean (Pest) Overlay -->
+        <div id="clean-overlay" class="hidden">
+            <div id="clean-modal">
+                <h2 data-i18n="ui_clean_title">🚿 環境清理 🚿</h2>
+                <div id="pest-display">
+                    <img id="pest-img" src="" alt="蟲蟲">
+                    <div id="pest-info">
+                        <div id="pest-name-row">
+                            <span id="pest-name-local"></span>
+                            <span id="pest-name-en"></span>
+                        </div>
+                        <p id="pest-desc"></p>
+                    </div>
+                </div>
+                <div id="clean-hint" data-i18n="ui_clean_hint">輸入蟲蟲的英文名稱來清除牠！</div>
+                <div id="clean-back-btn" class="feed-choice" style="width: 100px; margin: 15px auto 0; padding: 10px 4px;">
+                    <span class="feed-choice-name" data-i18n="ui_back">返回</span>
+                    <span class="feed-choice-cmd">back</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="load-file-input" accept=".json" style="display:none">
+    <script src="evolution_config.js"></script>
+    <script src="ability_config.js"></script>
+    <script src="pest_config.js"></script>
+    <script src="battle_engine.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
