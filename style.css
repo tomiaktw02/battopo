@@ -1691,26 +1691,28 @@ body {
     .mobile-mode #game-container {
         width: 100%;
         height: 100vh;
+        height: 100dvh;
         border-radius: 0;
         border: none;
     }
 
     .mobile-mode #pet-sprite-wrapper {
-        height: 140px; /* Shrunk for keyboard */
+        height: 130px; /* Even smaller to fit */
     }
 
     .mobile-mode #pet-sprite {
-        width: 140px;
-        height: 140px;
-    }
-
-    .mobile-mode #input-area {
-        padding-bottom: 60px; /* Increased to avoid Android nav bar */
-        padding-bottom: max(60px, env(safe-area-inset-bottom));
+        width: 130px;
+        height: 130px;
     }
 
     .mobile-mode #message-log {
-        max-height: 40px; /* Slightly shorter to fit more */
+        max-height: 40px;
     }
+}
+
+/* Force lifting on all mobile detected devices */
+.mobile-mode #input-area {
+    padding-bottom: 90px !important;
+    padding-bottom: max(90px, env(safe-area-inset-bottom)) !important;
 }
 
