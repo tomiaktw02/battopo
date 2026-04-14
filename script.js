@@ -100,9 +100,101 @@
     const oppHPBar        = $('opponent-hp-bar');
     const battleMsgText   = $('battle-msg-text');
     const projectileLayer = $('battle-projectile-layer');
+    const mobileKeyboard  = $('mobile-keyboard');
+
+    // ---- Mobile Keyboard Logic ----
+    function initMobileKeyboard() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                         || (window.matchMedia("(pointer: coarse)").matches)
+                         || (window.innerWidth <= 600);
+
+        if (!isMobile) return;
+
+        // Enable mobile mode
+        document.body.classList.add('mobile-mode');
+        if (!mobileKeyboard) return;
+
+        mobileKeyboard.classList.remove('hidden');
+        cmdInput.setAttribute('inputmode', 'none');
+
+        const rows = [
+            'QWERTYUIOP',
+            'ASDFGHJKL',
+            'ZXCVBNM',
+            ['CLEAR', 'SPACE', 'BACK']
+        ];
+
+        rows.forEach((row) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'kb-row';
+            
+            if (typeof row === 'string') {
+                row.split('').forEach(char => {
+                    const btn = document.createElement('div');
+                    btn.className = 'kb-key';
+                    btn.textContent = char;
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        insertChar(char.toLowerCase());
+                    };
+                    rowDiv.appendChild(btn);
+                });
+            } else {
+                // Special row
+                row.forEach(special => {
+                    const btn = document.createElement('div');
+                    btn.className = 'kb-key';
+                    if (special === 'CLEAR') {
+                        btn.classList.add('special');
+                        btn.textContent = (typeof t === 'function' ? t('ui_kb_clear') : 'CLEAR');
+                        btn.onclick = (e) => { 
+                            e.preventDefault(); 
+                            cmdInput.value = ''; 
+                            cmdInput.focus(); 
+                        };
+                    } else if (special === 'SPACE') {
+                        btn.classList.add('space');
+                        btn.textContent = (typeof t === 'function' ? t('ui_kb_space') : 'SPACE');
+                        btn.onclick = (e) => { e.preventDefault(); insertChar(' '); };
+                    } else if (special === 'BACK') {
+                        btn.classList.add('backspace');
+                        btn.textContent = '⌫';
+                        btn.onclick = (e) => {
+                            e.preventDefault();
+                            const start = cmdInput.selectionStart;
+                            const end = cmdInput.selectionEnd;
+                            const val = cmdInput.value;
+                            if (start === end && start > 0) {
+                                cmdInput.value = val.slice(0, start - 1) + val.slice(end);
+                                cmdInput.selectionStart = cmdInput.selectionEnd = start - 1;
+                            } else {
+                                cmdInput.value = val.slice(0, start) + val.slice(end);
+                                cmdInput.selectionStart = cmdInput.selectionEnd = start;
+                            }
+                            cmdInput.focus();
+                        };
+                    }
+                    rowDiv.appendChild(btn);
+                });
+            }
+            mobileKeyboard.appendChild(rowDiv);
+        });
+    }
+
+    function insertChar(char) {
+        const start = cmdInput.selectionStart;
+        const end = cmdInput.selectionEnd;
+        const val = cmdInput.value;
+        cmdInput.value = val.slice(0, start) + char + val.slice(end);
+        cmdInput.selectionStart = cmdInput.selectionEnd = start + char.length;
+        cmdInput.focus();
+    }
 
     // Make sure we initialize UI language once DOM is ready
-    document.addEventListener('DOMContentLoaded', updateLanguageUI);
+    document.addEventListener('DOMContentLoaded', () => {
+        updateLanguageUI();
+        initMobileKeyboard();
+    });
 
     // ---- Game State ----
     let state = null;

@@ -58,6 +58,9 @@ const LANGUAGES = {
         ui_evo_ready: '{0}：隨時可能發生',
         ui_evo_time_d: '{0}：剩餘 {1}天 {2}時 {3}分',
         ui_evo_time: '{0}：剩餘 {1}時 {2}分',
+        ui_kb_clear: '清除',
+        ui_kb_space: '空白',
+        ui_kb_back: '退格',
         
         // Fruit Names
         fruit_apple: '蘋果',
@@ -439,6 +442,9 @@ const LANGUAGES = {
         ui_evo_ready: '{0}: Ready anytime',
         ui_evo_time_d: '{0}: {1}d {2}h {3}m left',
         ui_evo_time: '{0}: {1}h {2}m left',
+        ui_kb_clear: 'Clear',
+        ui_kb_space: 'Space',
+        ui_kb_back: 'Back',
         
         // Fruit Names
         fruit_apple: 'Apple',
