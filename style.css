@@ -1710,9 +1710,9 @@ body {
     }
 }
 
-/* Force lifting on all mobile detected devices */
+/* Safe area padding for all mobile detected devices */
 .mobile-mode #input-area {
-    padding-bottom: 90px !important;
-    padding-bottom: max(90px, env(safe-area-inset-bottom)) !important;
+    padding-bottom: 10px;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
