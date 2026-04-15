@@ -228,6 +228,24 @@
                 </div>
             </div>
         </div>
+
+        <!-- Rename Overlay (Mobile Dedicated) -->
+        <div id="rename-overlay" class="hidden">
+            <div id="rename-modal">
+                <h2 data-i18n="ui_rename_modal_title">🏷️ 更改名稱 🏷️</h2>
+                <p data-i18n="ui_rename_modal_desc">請輸入您的夥伴新名字：</p>
+                <input type="text" id="rename-input" maxlength="10" placeholder="..." autocomplete="off">
+                <div id="rename-confirm-btn" class="feed-choice" style="width: 120px; margin: 20px auto 10px; padding: 10px 4px; background: rgba(46, 204, 113, 0.2); border-color: var(--accent-green);">
+                    <span class="feed-choice-name" data-i18n="ui_confirm">確認</span>
+                </div>
+                <div id="rename-cancel-btn" class="feed-choice" style="width: 120px; margin: 0 auto; padding: 10px 4px;">
+                    <span class="feed-choice-name" data-i18n="ui_cancel">取消</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global functional tooltip -->
+        <div id="global-tooltip" class="hidden"></div>
     </div>
 
     <input type="file" id="load-file-input" accept=".json" style="display:none">

@@ -101,6 +101,13 @@
     const battleMsgText   = $('battle-msg-text');
     const projectileLayer = $('battle-projectile-layer');
     const mobileKeyboard  = $('mobile-keyboard');
+    const globalTooltip   = $('global-tooltip');
+    
+    // Rename Modal DOM refs
+    const renameOverlay    = $('rename-overlay');
+    const renameInput      = $('rename-input');
+    const renameConfirmBtn = $('rename-confirm-btn');
+    const renameCancelBtn  = $('rename-cancel-btn');
 
     // ---- Mobile Keyboard Logic ----
     function initMobileKeyboard() {
@@ -198,13 +205,102 @@
         cmdInput.focus();
     }
 
+    // ---- Drag Scroll for Action Panel ----
+    function initDragScroll() {
+        if (!actionPanel) return;
+
+        let isDown = false;
+        let startY;
+        let initialScrollTop;
+        let moved = false;
+
+        const startDrag = (clientY) => {
+            isDown = true;
+            actionPanel.classList.add('dragging');
+            startY = clientY;
+            initialScrollTop = actionPanel.scrollTop;
+            moved = false;
+            isPanelDragging = false;
+            hideActionTooltip();
+        };
+
+        const stopDrag = () => {
+            if (!isDown) return;
+            isDown = false;
+            actionPanel.classList.remove('dragging');
+            if (moved) {
+                setTimeout(() => { isPanelDragging = false; }, 50);
+            } else {
+                isPanelDragging = false;
+            }
+        };
+
+        const onMove = (clientY) => {
+            if (!isDown) return;
+            const deltaY = clientY - startY;
+            
+            if (Math.abs(deltaY) > 5) {
+                moved = true;
+                isPanelDragging = true;
+            }
+            
+            if (moved) {
+                hideActionTooltip();
+                actionPanel.scrollTop = initialScrollTop - deltaY;
+            }
+        };
+
+        // Mouse events
+        actionPanel.addEventListener('mousedown', (e) => {
+            startDrag(e.clientY);
+        });
+
+        window.addEventListener('mouseup', stopDrag);
+        
+        window.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            onMove(e.clientY);
+        });
+
+        // Touch events
+        actionPanel.addEventListener('touchstart', (e) => {
+            startDrag(e.touches[0].clientY);
+        }, { passive: true });
+
+        window.addEventListener('touchend', stopDrag, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDown) return;
+            onMove(e.touches[0].clientY);
+        }, { passive: false });
+    }
+
     // Make sure we initialize UI language once DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
         updateLanguageUI();
         initMobileKeyboard();
+        initDragScroll();
     });
 
+    // ---- Speech Synthesis ----
+    function speakCommand(text) {
+        if (!window.speechSynthesis) return;
+        // Cancel any ongoing speech to avoid queueing up too many commands
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+    }
+
+
     // ---- Game State ----
+    let isPanelDragging = false; 
+    let isTouchCapable = 'ontouchstart' in window || 
+                         navigator.maxTouchPoints > 0 || 
+                         window.matchMedia("(pointer: coarse)").matches;
     let state = null;
     let cachedFormInfo = null; // Performance optimization: cache for current species info
 
@@ -516,7 +612,10 @@
                 <span class="feed-choice-name">${t(fruit.nameKey) || fruit.id}</span>
                 <span class="feed-choice-cmd">${fruit.id}</span>
             `;
+            btn.onclick = () => speakCommand(fruit.id);
             feedChoices.appendChild(btn);
+
+
         });
 
         feedOverlay.classList.remove('hidden');
@@ -1155,11 +1254,14 @@
 
     function renderActions() {
         actionButtons.innerHTML = '';
-        if (battleState) return; // Hide actions during battle
+        if (battleState) {
+            hideActionTooltip();
+            return;
+        }
 
         const systemActions = [
-            { id: 'hof',  emoji: '🏆', label: 'HOF',  desc: t('ui_hof_desc') },
-            { id: 'dex',  emoji: '📖', label: 'DEX',  desc: t('ui_dex_desc') },
+            { id: 'hof',  emoji: '🏆', label: 'HOF',  desc: t('ui_hof_desc'), speak: 'hall of fame' },
+            { id: 'bestiary', emoji: '📖', label: 'BESTIARY', desc: t('ui_dex_desc') },
             { id: 'save', emoji: '💾', label: 'SAVE', desc: t('ui_save_desc') },
             { id: 'load', emoji: '📂', label: 'LOAD', desc: t('ui_load_desc') },
         ];
@@ -1186,14 +1288,63 @@
     function addActionBtn(a) {
         const btn = document.createElement('div');
         btn.className = 'action-btn';
-        btn.innerHTML = `
-            ${a.emoji}
-            <div class="action-tooltip">
-                <span class="tooltip-name">${a.label}</span>
-                <span class="tooltip-desc">${a.desc}</span>
-            </div>
-        `;
+        
+        btn.onclick = () => {
+            if (isPanelDragging) return;
+            // Only speak, do not execute game command
+            speakCommand(a.speak || a.id);
+            
+            // On touch devices, click shows the tooltip and it remains visible.
+            // On non-touch (PC), click hides it for a cleaner UI.
+            if (isTouchCapable) {
+                showActionTooltip(btn, a.label, a.desc);
+            } else {
+                hideActionTooltip();
+            }
+        };
+        
+        btn.onmouseenter = () => {
+            // Hover logic only for PC (mouse)
+            if (isTouchCapable) return;
+            if (isPanelDragging) return;
+            showActionTooltip(btn, a.label, a.desc);
+        };
+        
+        btn.onmouseleave = () => {
+            // Mouse leave logic only for PC
+            if (isTouchCapable) return;
+            hideActionTooltip();
+        };
+
+        btn.innerHTML = `${a.emoji}`;
         actionButtons.appendChild(btn);
+    }
+
+    function showActionTooltip(target, name, desc) {
+        if (!globalTooltip) return;
+        
+        globalTooltip.innerHTML = `
+            <span class="tooltip-name">${name}</span>
+            <span class="tooltip-desc">${desc}</span>
+        `;
+        
+        const rect = target.getBoundingClientRect();
+        const containerRect = $('game-container').getBoundingClientRect();
+        
+        const top = (rect.top - containerRect.top) + (rect.height / 2);
+        const left = (rect.right - containerRect.left) + 8;
+        
+        globalTooltip.style.top = `${top}px`;
+        globalTooltip.style.left = `${left}px`;
+        globalTooltip.style.transform = `translateY(-50%)`;
+        
+        globalTooltip.classList.remove('hidden');
+    }
+
+    function hideActionTooltip() {
+        if (globalTooltip) {
+            globalTooltip.classList.add('hidden');
+        }
     }
 
     function renderEvoTimer() {
@@ -1257,16 +1408,20 @@
 
     // ---- Commands ----
     function handleCommand(raw) {
+        // Hide persistent tooltips when a command is processed
+        hideActionTooltip();
+        
         const cmd = raw.trim().toLowerCase();
         if (!cmd) return;
 
         // Save/Load/Dex always available
-        if (cmd === 'save') { exportSaveFile(); return; }
-        if (cmd === 'load') { importSaveFile(); return; }
-        if (cmd === 'dex') { openDex(); return; }
-        if (cmd === 'hof') { openHof(); return; }
-        if (cmd === 'lang') { openLang(); return; }
+        if (cmd === 'save') { speakCommand('save'); exportSaveFile(); return; }
+        if (cmd === 'load') { speakCommand('load'); importSaveFile(); return; }
+        if (cmd === 'bestiary') { speakCommand('bestiary'); openDex(); return; }
+        if (cmd === 'hof') { speakCommand('hall of fame'); openHof(); return; }
+        if (cmd === 'lang') { speakCommand('language'); openLang(); return; }
         if (cmd === 'log_battle') {
+            speakCommand('log battle');
             state.battleDebug = !state.battleDebug;
             addMsg(t('msg_battle_log_toggle', state.battleDebug ? t('ui_on') : t('ui_off')), 'info');
             save();
@@ -1274,6 +1429,7 @@
         }
         if (cmd === 'egg') { 
             if (state.left || state.dead) {
+                speakCommand('egg');
                 restart();
             } else {
                 addMsg(t('msg_egg_exists'), 'warning');
@@ -1281,9 +1437,11 @@
             return; 
         }
 
+
         // If in a modal mode, prioritize those handlers
         if (state.isRps) {
             if (cmd === 'back') {
+                speakCommand('back');
                 state.isRps = false;
                 rpsOverlay.classList.add('hidden');
                 cmdInput.placeholder = t('ui_cmd_prompt');
@@ -1293,13 +1451,14 @@
             return;
         }
         if (state.isFeedMode) {
-            if (cmd === 'back') { closeFeed(); return; }
+            if (cmd === 'back') { speakCommand('back'); closeFeed(); return; }
             handleFeedChoice(cmd);
             return;
         }
         if (state.isLangMode) {
-            if (cmd === 'back') { closeLang(); return; }
+            if (cmd === 'back') { speakCommand('back'); closeLang(); return; }
             if (['english', 'chinese', 'japanese'].includes(cmd)) {
+                speakCommand(cmd);
                 let code = cmd === 'english' ? 'en' : (cmd === 'chinese' ? 'zh-TW' : 'ja');
                 switchLanguage(code);
                 closeLang();
@@ -1313,47 +1472,56 @@
             return;
         }
         if (state.isHofMode) {
-            if (cmd === 'back') { closeHof(); return; }
+            if (cmd === 'back') { speakCommand('back'); closeHof(); return; }
             // HOF has no other commands
             addMsg(t('msg_hof_invalid'), 'error');
             return;
         }
         if (state.isDexMode) {
-            if (cmd === 'back') { closeDex(); return; }
+            if (cmd === 'back') { speakCommand('back'); closeDex(); return; }
             addMsg(t('msg_dex_invalid', cmd), 'error');
             return;
         }
         if (state.isCleaningMode) {
-            if (cmd === 'back') { closeClean(); return; }
+            if (cmd === 'back') { speakCommand('back'); closeClean(); return; }
             handleCleaningInput(cmd);
             return;
         }
 
+
         // Debug commands
         if (IS_DEBUG) {
             if (cmd === 'debughunger') {
+                speakCommand('debug hunger');
                 if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
+
                 state.hunger = Math.max(0, state.hunger - 1);
                 if (state.hunger === 0 && !state.hungerZeroSince) state.hungerZeroSince = Date.now();
                 addMsg(t('msg_debug_stat', 'hunger', getStatDesc('hunger', state.hunger).text), 'warning');
                 save(); renderStats(); return;
             }
             if (cmd === 'debughappy') {
+                speakCommand('debug happy');
                 if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
+
                 state.happy = Math.max(0, state.happy - 1);
                 if (state.happy === 0 && !state.happyZeroSince) state.happyZeroSince = Date.now();
                 addMsg(t('msg_debug_stat', 'happy', getStatDesc('happy', state.happy).text), 'warning');
                 save(); renderStats(); return;
             }
             if (cmd === 'debugpoop') {
+                speakCommand('debug poop');
                 if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
+
                 state.poopCount = Math.min(MAX_POOP, state.poopCount + 1);
                 if (state.poopCount > 0 && !state.poopDirtySince) state.poopDirtySince = Date.now();
                 addMsg(t('msg_debug_stat', 'poop', getStatDesc('poop', state.poopCount).text), 'warning');
                 save(); renderPoops(); return;
             }
             if (cmd === 'debugreset') {
+                speakCommand('debug reset');
                 localStorage.removeItem(SAVE_KEY);
+
                 state = defaultState();
                 leaveOverlay.classList.add('hidden');
                 rpsOverlay.classList.add('hidden');
@@ -1370,9 +1538,11 @@
                     const targetId = parts[1];
                     const opponent = getFormInfo(targetId);
                     if (opponent) {
+                        speakCommand('debug battle');
                         startBattle(opponent);
                         return;
                     }
+
                 }
                 addMsg("❌ Usage: debugbattle [pet_id]", 'warning');
                 return;
@@ -1390,26 +1560,36 @@
                         };
                     }
                 }
+                speakCommand('debug dex all');
                 saveDex(dex);
+
                 addMsg(t('msg_debug_dex_all', allForms.length), 'warning');
                 return;
             }
             if (cmd === 'debugdexclear') {
+                speakCommand('debug dex clear');
                 localStorage.removeItem(DEX_KEY);
+
                 addMsg(t('msg_debug_dex_clear'), 'warning');
                 return;
             }
             if (cmd === 'debugstatus' || cmd === 'status') {
+                speakCommand('status');
                 doStatus();
                 return;
             }
+
             if (cmd === 'debugdeath') {
+                speakCommand('debug death');
                 if (state.stage < STAGE_EVO2) { addMsg(t('msg_debug_death_err'), 'warning'); return; }
+
                 triggerDeath();
                 return;
             }
             if (cmd === 'debughofclear') {
+                speakCommand('debug hall of fame clear');
                 localStorage.removeItem(HOF_KEY);
+
                 addMsg(t('msg_debug_hof_clear'), 'warning');
                 return;
             }
@@ -1418,7 +1598,9 @@
                 if (state.stage >= STAGE_EVO2) { addMsg(t('msg_debug_evo_err'), 'warning'); return; }
 
                 if (state.stage === STAGE_BABY) {
+                    speakCommand('debug evolve');
                     const target = determineStage1Evolution();
+
                     evolveToForm(STAGE_EVO1, target);
                     addMsg(t('msg_debug_evo1'), 'warning');
                 } else if (state.stage === STAGE_EVO1) {
@@ -1435,7 +1617,9 @@
                     const fruitId = parts[1];
                     const amount = parseInt(parts[2]);
                     if (state.feedCount[fruitId] !== undefined && !isNaN(amount)) {
+                        speakCommand('debug feed');
                         state.feedCount[fruitId] += amount;
+
                         addMsg(t('msg_debug_feed', fruitId, amount, state.feedCount[fruitId]), 'warning');
                         save();
                         return;
@@ -1472,7 +1656,9 @@
                         }
                         
                         addMsg(t('msg_debug_setpet', targetForm.emoji, targetForm.name), 'warning');
+                        speakCommand('debug set pet');
                         registerToDex(targetForm.id);
+
                         save();
                         renderAll();
                         return;
@@ -1497,6 +1683,7 @@
         // Egg stage
         if (state.stage === STAGE_EGG) {
             if (cmd === 'knock') {
+                speakCommand('knock');
                 doKnock();
             } else {
                 addMsg(t('msg_cmd_unknown_egg', raw.trim()), 'error');
@@ -1506,14 +1693,15 @@
 
         // Hatched stages
         switch (cmd) {
-            case 'feed':   openFeed();   break;
-            case 'clean':  doClean();  break;
-            case 'play':   doPlay();   break;
-            case 'battle': doBattle(); break;
-            case 'rename': doRename(); break;
+            case 'feed':   speakCommand('feed');   openFeed();   break;
+            case 'clean':  speakCommand('clean');  doClean();  break;
+            case 'play':   speakCommand('play');   doPlay();   break;
+            case 'battle': speakCommand('battle'); doBattle(); break;
+            case 'rename': speakCommand('rename'); doRename(); break;
             default:
                 addMsg(t('msg_cmd_unknown'), 'error');
         }
+
     }
 
     // ---- Actions ----
@@ -1592,7 +1780,9 @@
             addMsg(t('msg_feed_invalid', ids), 'error');
             return;
         }
+        speakCommand(cmd);
         closeFeed();
+
         state.hunger = Math.min(MAX_HUNGER, state.hunger + 1);
         if (state.hunger > 0) state.hungerZeroSince = null;
 
@@ -1613,13 +1803,29 @@
             addMsg(t('msg_battle_already'), 'warning');
             return;
         }
+
+        const isMobile = document.body.classList.contains('mobile-mode');
+        if (isMobile && renameOverlay) {
+            renameInput.value = getPetName();
+            renameOverlay.classList.remove('hidden');
+            setTimeout(() => renameInput.focus(), 100);
+            return;
+        }
+
         state.isRenaming = true;
         addMsg(t('msg_rename_prompt', getPetName()), 'info');
         cmdInput.placeholder = '...';
     }
 
+    function closeRenameModal() {
+        if (renameOverlay) renameOverlay.classList.add('hidden');
+        cmdInput.focus();
+    }
+
     function handleRename(newName) {
         state.isRenaming = false;
+        closeRenameModal(); // Ensure modal is closed if coming from mobile UI
+
         if (!newName || newName.length === 0) {
             addMsg(t('msg_rename_empty'), 'error');
             cmdInput.placeholder = t('ui_cmd_prompt');
@@ -1630,8 +1836,10 @@
             cmdInput.placeholder = t('ui_cmd_prompt');
             return;
         }
+        speakCommand(newName);
         const oldName = getPetName();
         state.customName = newName;
+
         addMsg(t('msg_rename_success', oldName, newName), 'success');
         cmdInput.placeholder = t('ui_cmd_prompt');
         save();
@@ -1659,7 +1867,10 @@
 
         // Render pest info
         pestImg.src = pest.img;
+        pestImg.onclick = () => speakCommand(pest.id.toLowerCase());
         pestNameLocal.textContent = pest.names[currentLang] || pest.names['en'];
+
+
         pestNameEn.textContent = pest.names['en'];
         pestDesc.textContent = pest.descriptions[currentLang] || pest.descriptions['en'];
 
@@ -1680,9 +1891,17 @@
     function handleCleaningInput(cmd) {
         if (!state.currentPest) return;
 
-        if (cmd === state.currentPest.id.toLowerCase()) {
+        // Use space-insensitive comparison for pest names
+        const normalizedCmd = cmd.replace(/\s+/g, '');
+        const targetId = state.currentPest.id.toLowerCase();
+        const targetEn = (state.currentPest.names['en'] || '').toLowerCase().replace(/\s+/g, '');
+
+        if (normalizedCmd === targetId || normalizedCmd === targetEn) {
             // Success!
+            speakCommand(cmd); // Speak the original command including spaces
+
             const poops = poopArea.querySelectorAll('.poop');
+
             // Even if hidden, we can animate or just update state
             state.poopCount = Math.max(0, state.poopCount - 1);
             if (state.poopCount === 0) state.poopDirtySince = null;
@@ -1757,8 +1976,10 @@
             addMsg(t('msg_rps_invalid'), 'error');
             return;
         }
+        speakCommand(cmd);
 
         const playerChoice = cmd;
+
         const petChoice = choices[Math.floor(Math.random() * 3)];
 
         // Highlight choices
@@ -2246,22 +2467,48 @@
 
 
 
-    /* [移除了點擊功能，改為指令操作]
-    dexBackBtn.addEventListener('click', closeDex);
-    if ($('clean-back-btn')) $('clean-back-btn').addEventListener('click', closeClean);
-    if ($('feed-back-btn')) $('feed-back-btn').addEventListener('click', closeFeed);
-    if ($('lang-back-btn')) $('lang-back-btn').addEventListener('click', closeLang);
-    if ($('hof-close-btn')) $('hof-close-btn').addEventListener('click', closeHof);
-    if ($('feed-choices')) {
-        $('feed-choices').addEventListener('click', (e) => {
-            const item = e.target.closest('.feed-choice');
-            if (item) {
-                const cmd = item.querySelector('.feed-choice-cmd').textContent;
-                handleFeedChoice(cmd);
+    // ---- Modal Button Listeners (Audio-Only) ----
+    if (dexBackBtn) dexBackBtn.onclick = () => speakCommand('back');
+    if ($('clean-back-btn')) $('clean-back-btn').onclick = () => speakCommand('back');
+    if ($('feed-back-btn')) $('feed-back-btn').onclick = () => speakCommand('back');
+    if ($('lang-back-btn')) $('lang-back-btn').onclick = () => speakCommand('back');
+    if ($('hof-close-btn')) $('hof-close-btn').onclick = () => speakCommand('back');
+
+    // Rename Modal Listeners
+    if (renameConfirmBtn) {
+        renameConfirmBtn.onclick = () => {
+            const val = renameInput.value;
+            handleRename(val);
+        };
+    }
+    if (renameCancelBtn) {
+        renameCancelBtn.onclick = () => closeRenameModal();
+    }
+    if (renameInput) {
+        renameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleRename(renameInput.value);
             }
         });
     }
-    */
+
+    // RPS Choices (Audio-Only)
+    document.querySelectorAll('.rps-choice').forEach(btn => {
+        btn.onclick = () => {
+            const choice = btn.dataset.choice;
+            if (choice) speakCommand(choice);
+        };
+    });
+
+    // Language Choices (Audio-Only)
+    document.querySelectorAll('.lang-choice').forEach(btn => {
+        btn.onclick = () => {
+            const cmd = btn.querySelector('span:last-child').textContent.toLowerCase();
+            speakCommand(cmd);
+        };
+    });
+
+
 
     // Keyboard scrolling for Dex
     window.addEventListener('keydown', (e) => {
