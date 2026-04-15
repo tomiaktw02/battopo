@@ -1741,7 +1741,7 @@ body {
     .mobile-mode #feed-overlay,
     .mobile-mode #lang-overlay {
         align-items: flex-start;
-        padding-top: 40px;
+        padding-top: 20px;
         padding-bottom: 300px;
         overflow-y: auto;
     }
@@ -1764,7 +1764,7 @@ body {
     .mobile-mode #rps-overlay,
     .mobile-mode #clean-overlay {
         align-items: flex-start;
-        padding-top: 60px;
+        padding-top: 40px;
         padding-bottom: 300px;
         overflow-y: auto;
     }
@@ -1788,8 +1788,44 @@ body {
     /* Rename modal mobile position */
     .mobile-mode #rename-overlay {
         align-items: flex-start;
-        padding-top: 40px;
+        padding-top: 20px;
         padding-bottom: 300px;
+    }
+
+    /* ===== Battle Scene Mobile Adjustments ===== */
+    .mobile-mode #battle-scene {
+        padding: 8px 0;
+    }
+
+    /* Shrink sprites to fit more comfortably */
+    .mobile-mode .battle-sprite {
+        width: 110px;
+        height: 110px;
+    }
+
+    .mobile-mode .battle-hp-bar-wrapper {
+        width: 110px;
+    }
+
+    /* 對方寵物：往右移（減少 margin-right）、靠近頂部 */
+    .mobile-mode #battle-opponent-area {
+        margin-right: 20px;
+        margin-top: 10px;
+    }
+
+    /* 我方寵物：往左上移（減少 margin-left，縮小 margin-bottom） */
+    .mobile-mode #battle-player-area {
+        margin-left: 15px;
+        margin-bottom: 35px;
+    }
+
+    /* 戰鬥訊息框：往下移（降低 bottom 值） */
+    .mobile-mode #battle-msg-box {
+        bottom: 60px;
+        right: 10px;
+        width: 185px;
+        padding: 8px 14px;
+        font-size: 12px;
     }
 }
 
@@ -1858,3 +1894,35 @@ body {
     padding-bottom: 0 !important;
 }
 
+
+/* ---- Sound Mode Button ---- */
+#sound-mode-btn {
+    position: relative;
+}
+
+#sound-mode-btn:hover {
+    border-color: var(--border-color) !important;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+#sound-mode-btn:active {
+    transform: scale(0.92);
+}
+
+/* State 2 = full on: accent-green tint */
+#sound-mode-btn[data-sound-mode="2"] {
+    color: var(--accent-green, #2ecc71);
+    border-color: rgba(46, 204, 113, 0.35) !important;
+}
+
+/* State 1 = partial: accent-info tint */
+#sound-mode-btn[data-sound-mode="1"] {
+    color: var(--accent-info, #3498db);
+    border-color: rgba(52, 152, 219, 0.35) !important;
+}
+
+/* State 0 = off: muted / dimmed */
+#sound-mode-btn[data-sound-mode="0"] {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}

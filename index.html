@@ -17,13 +17,21 @@
         <header id="game-header">
             <div id="header-top-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div id="pet-name-display" data-i18n="ui_egg_name">🥚 蛋</div>
-                <div id="lang-btn-display" style="font-size: 10px; color: var(--text-secondary); cursor: help; display: flex; flex-direction: column; align-items: flex-end;">
-                    <div class="lang-tooltip">
-                        <span class="tooltip-name" data-i18n="ui_lang_title">語言/Language</span>
-                        <span class="tooltip-desc" data-i18n="ui_lang_tooltip">切換遊戲語言設定</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Sound Mode Toggle Button -->
+                    <div id="sound-mode-btn" style="font-size: 10px; color: var(--text-secondary); cursor: pointer; display: flex; flex-direction: column; align-items: center; user-select: none; padding: 2px 4px; border-radius: 6px; border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;">
+                        <span class="sound-icon" style="font-size: 16px;">🔊</span>
+                        <span class="sound-label">on</span>
                     </div>
-                    <span style="font-size: 16px;">🌐</span>
-                    <span>lang</span>
+                    <!-- Lang Button -->
+                    <div id="lang-btn-display" style="font-size: 10px; color: var(--text-secondary); cursor: help; display: flex; flex-direction: column; align-items: flex-end;">
+                        <div class="lang-tooltip">
+                            <span class="tooltip-name" data-i18n="ui_lang_title">語言/Language</span>
+                            <span class="tooltip-desc" data-i18n="ui_lang_tooltip">切換遊戲語言設定</span>
+                        </div>
+                        <span style="font-size: 16px;">🌐</span>
+                        <span>lang</span>
+                    </div>
                 </div>
             </div>
             <div id="stats-bar">

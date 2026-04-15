@@ -41,6 +41,7 @@
     const SAVE_KEY = 'battopo_save';
     const DEX_KEY = 'battopo_dex';
     const HOF_KEY = 'battopo_hof';
+    const SOUND_KEY = 'battopo_sound_mode'; // 0=off, 1=partial, 2=full
 
     const LIFESPAN_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
 
@@ -280,10 +281,58 @@
         updateLanguageUI();
         initMobileKeyboard();
         initDragScroll();
+        // Initialize sound button
+        renderSoundBtn();
+        const soundBtn = document.getElementById('sound-mode-btn');
+        if (soundBtn) {
+            soundBtn.addEventListener('click', () => {
+                cycleSoundMode();
+            });
+        }
     });
 
+    // ---- Sound Mode (0=off, 1=partial, 2=full) ----
+    // Partial mode: only feed food names, rps choices, and pest names are spoken
+    // Stored in localStorage independently from game state so it persists across resets
+    function getSoundMode() {
+        const val = localStorage.getItem(SOUND_KEY);
+        if (val === null) return 2; // default: full on first play
+        return parseInt(val, 10);
+    }
+
+    function setSoundMode(mode) {
+        localStorage.setItem(SOUND_KEY, String(mode));
+        renderSoundBtn();
+    }
+
+    function cycleSoundMode() {
+        // Cycle: 2(全開) → 1(非重點關閉) → 0(全關閉) → 2(全開)
+        const cycleMap = { 2: 1, 1: 0, 0: 2 };
+        setSoundMode(cycleMap[getSoundMode()]);
+    }
+
+    function renderSoundBtn() {
+        const btn = document.getElementById('sound-mode-btn');
+        if (!btn) return;
+        const mode = getSoundMode();
+        const icons  = ['🔇', '🔉', '🔊'];
+        const labels = ['sound off', 'sound partial', 'sound on'];
+        btn.querySelector('.sound-icon').textContent = icons[mode];
+        btn.querySelector('.sound-label').textContent = ['off', 'partial', 'on'][mode];
+        btn.title = labels[mode];
+        btn.dataset.soundMode = mode; // used by CSS for state-based styling
+    }
+
     // ---- Speech Synthesis ----
-    function speakCommand(text) {
+    // type: 'feed' | 'rps' | 'pest' | 'other'
+    // In partial mode (1), only feed/rps/pest types are spoken
+    function speakCommand(text, type) {
+        const mode = getSoundMode();
+        if (mode === 0) return; // fully muted
+        if (mode === 1) {
+            // Allow only key interaction types
+            if (type !== 'feed' && type !== 'rps' && type !== 'pest') return;
+        }
         if (!window.speechSynthesis) return;
         // Cancel any ongoing speech to avoid queueing up too many commands
         if (window.speechSynthesis.speaking) {
@@ -612,7 +661,7 @@
                 <span class="feed-choice-name">${t(fruit.nameKey) || fruit.id}</span>
                 <span class="feed-choice-cmd">${fruit.id}</span>
             `;
-            btn.onclick = () => speakCommand(fruit.id);
+            btn.onclick = () => speakCommand(fruit.id, 'feed');
             feedChoices.appendChild(btn);
 
 
@@ -674,19 +723,23 @@
         if (state.diedAt === undefined) state.diedAt = null;
         if (state.lastSaved === undefined) state.lastSaved = Date.now();
         if (state.customName === undefined) state.customName = null;
-        if (state.isFeedMode === undefined) state.isFeedMode = false;
-        if (state.isRenaming === undefined) state.isRenaming = false;
-        // New fields
+        // Force UI modes to false on load to avoid state mismatch with HTML/CSS
+        state.isRps = false;
+        state.isFeedMode = false;
+        state.isLangMode = false;
+        state.isRenaming = false;
+        state.isHofMode = false;
+        state.isDexMode = false;
+        state.isCleaningMode = false;
+        state.currentPest = null;
+
+        // Ensure persistent data fields exist
         if (state.feedCount === undefined) state.feedCount = { apple: 0, orange: 0, lemon: 0, grape: 0, guava: 0 };
         if (state.currentFormId === undefined) state.currentFormId = null;
         if (state.evolutionPathId === undefined) state.evolutionPathId = null;
         if (state.battleDebug === undefined) state.battleDebug = false;
         if (state.wins === undefined) state.wins = 0;
         if (state.totalBattles === undefined) state.totalBattles = 0;
-        if (state.isHofMode === undefined) state.isHofMode = false;
-        if (state.isDexMode === undefined) state.isDexMode = false;
-        if (state.isCleaningMode === undefined) state.isCleaningMode = false;
-        if (state.currentPest === undefined) state.currentPest = null;
         
         // If stats are missing, try to initialize them
         if (!state.stats && state.currentFormId) {
@@ -1292,7 +1345,7 @@
         btn.onclick = () => {
             if (isPanelDragging) return;
             // Only speak, do not execute game command
-            speakCommand(a.speak || a.id);
+            speakCommand(a.speak || a.id, 'other');
             
             // On touch devices, click shows the tooltip and it remains visible.
             // On non-touch (PC), click hides it for a cleaner UI.
@@ -1415,13 +1468,13 @@
         if (!cmd) return;
 
         // Save/Load/Dex always available
-        if (cmd === 'save') { speakCommand('save'); exportSaveFile(); return; }
-        if (cmd === 'load') { speakCommand('load'); importSaveFile(); return; }
-        if (cmd === 'bestiary') { speakCommand('bestiary'); openDex(); return; }
-        if (cmd === 'hof') { speakCommand('hall of fame'); openHof(); return; }
-        if (cmd === 'lang') { speakCommand('language'); openLang(); return; }
+        if (cmd === 'save') { speakCommand('save', 'other'); exportSaveFile(); return; }
+        if (cmd === 'load') { speakCommand('load', 'other'); importSaveFile(); return; }
+        if (cmd === 'bestiary') { speakCommand('bestiary', 'other'); openDex(); return; }
+        if (cmd === 'hof') { speakCommand('hall of fame', 'other'); openHof(); return; }
+        if (cmd === 'lang') { speakCommand('language', 'other'); openLang(); return; }
         if (cmd === 'log_battle') {
-            speakCommand('log battle');
+            speakCommand('log battle', 'other');
             state.battleDebug = !state.battleDebug;
             addMsg(t('msg_battle_log_toggle', state.battleDebug ? t('ui_on') : t('ui_off')), 'info');
             save();
@@ -1429,7 +1482,7 @@
         }
         if (cmd === 'egg') { 
             if (state.left || state.dead) {
-                speakCommand('egg');
+                speakCommand('egg', 'other');
                 restart();
             } else {
                 addMsg(t('msg_egg_exists'), 'warning');
@@ -1441,7 +1494,7 @@
         // If in a modal mode, prioritize those handlers
         if (state.isRps) {
             if (cmd === 'back') {
-                speakCommand('back');
+                speakCommand('back', 'other');
                 state.isRps = false;
                 rpsOverlay.classList.add('hidden');
                 cmdInput.placeholder = t('ui_cmd_prompt');
@@ -1451,14 +1504,14 @@
             return;
         }
         if (state.isFeedMode) {
-            if (cmd === 'back') { speakCommand('back'); closeFeed(); return; }
+            if (cmd === 'back') { speakCommand('back', 'other'); closeFeed(); return; }
             handleFeedChoice(cmd);
             return;
         }
         if (state.isLangMode) {
-            if (cmd === 'back') { speakCommand('back'); closeLang(); return; }
+            if (cmd === 'back') { speakCommand('back', 'other'); closeLang(); return; }
             if (['english', 'chinese', 'japanese'].includes(cmd)) {
-                speakCommand(cmd);
+                speakCommand(cmd, 'other');
                 let code = cmd === 'english' ? 'en' : (cmd === 'chinese' ? 'zh-TW' : 'ja');
                 switchLanguage(code);
                 closeLang();
@@ -1472,18 +1525,18 @@
             return;
         }
         if (state.isHofMode) {
-            if (cmd === 'back') { speakCommand('back'); closeHof(); return; }
+            if (cmd === 'back') { speakCommand('back', 'other'); closeHof(); return; }
             // HOF has no other commands
             addMsg(t('msg_hof_invalid'), 'error');
             return;
         }
         if (state.isDexMode) {
-            if (cmd === 'back') { speakCommand('back'); closeDex(); return; }
+            if (cmd === 'back') { speakCommand('back', 'other'); closeDex(); return; }
             addMsg(t('msg_dex_invalid', cmd), 'error');
             return;
         }
         if (state.isCleaningMode) {
-            if (cmd === 'back') { speakCommand('back'); closeClean(); return; }
+            if (cmd === 'back') { speakCommand('back', 'other'); closeClean(); return; }
             handleCleaningInput(cmd);
             return;
         }
@@ -1492,7 +1545,7 @@
         // Debug commands
         if (IS_DEBUG) {
             if (cmd === 'debughunger') {
-                speakCommand('debug hunger');
+                speakCommand('debug hunger', 'other');
                 if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
 
                 state.hunger = Math.max(0, state.hunger - 1);
@@ -1501,7 +1554,7 @@
                 save(); renderStats(); return;
             }
             if (cmd === 'debughappy') {
-                speakCommand('debug happy');
+                speakCommand('debug happy', 'other');
                 if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
 
                 state.happy = Math.max(0, state.happy - 1);
@@ -1510,7 +1563,7 @@
                 save(); renderStats(); return;
             }
             if (cmd === 'debugpoop') {
-                speakCommand('debug poop');
+                speakCommand('debug poop', 'other');
                 if (state.stage === STAGE_EGG) { addMsg(t('msg_debug_egg'), 'warning'); return; }
 
                 state.poopCount = Math.min(MAX_POOP, state.poopCount + 1);
@@ -1519,7 +1572,7 @@
                 save(); renderPoops(); return;
             }
             if (cmd === 'debugreset') {
-                speakCommand('debug reset');
+                speakCommand('debug reset', 'other');
                 localStorage.removeItem(SAVE_KEY);
 
                 state = defaultState();
@@ -1538,7 +1591,7 @@
                     const targetId = parts[1];
                     const opponent = getFormInfo(targetId);
                     if (opponent) {
-                        speakCommand('debug battle');
+                        speakCommand('debug battle', 'other');
                         startBattle(opponent);
                         return;
                     }
@@ -1560,34 +1613,34 @@
                         };
                     }
                 }
-                speakCommand('debug dex all');
+                speakCommand('debug dex all', 'other');
                 saveDex(dex);
 
                 addMsg(t('msg_debug_dex_all', allForms.length), 'warning');
                 return;
             }
             if (cmd === 'debugdexclear') {
-                speakCommand('debug dex clear');
+                speakCommand('debug dex clear', 'other');
                 localStorage.removeItem(DEX_KEY);
 
                 addMsg(t('msg_debug_dex_clear'), 'warning');
                 return;
             }
             if (cmd === 'debugstatus' || cmd === 'status') {
-                speakCommand('status');
+                speakCommand('status', 'other');
                 doStatus();
                 return;
             }
 
             if (cmd === 'debugdeath') {
-                speakCommand('debug death');
+                speakCommand('debug death', 'other');
                 if (state.stage < STAGE_EVO2) { addMsg(t('msg_debug_death_err'), 'warning'); return; }
 
                 triggerDeath();
                 return;
             }
             if (cmd === 'debughofclear') {
-                speakCommand('debug hall of fame clear');
+                speakCommand('debug hall of fame clear', 'other');
                 localStorage.removeItem(HOF_KEY);
 
                 addMsg(t('msg_debug_hof_clear'), 'warning');
@@ -1598,7 +1651,7 @@
                 if (state.stage >= STAGE_EVO2) { addMsg(t('msg_debug_evo_err'), 'warning'); return; }
 
                 if (state.stage === STAGE_BABY) {
-                    speakCommand('debug evolve');
+                    speakCommand('debug evolve', 'other');
                     const target = determineStage1Evolution();
 
                     evolveToForm(STAGE_EVO1, target);
@@ -1617,7 +1670,7 @@
                     const fruitId = parts[1];
                     const amount = parseInt(parts[2]);
                     if (state.feedCount[fruitId] !== undefined && !isNaN(amount)) {
-                        speakCommand('debug feed');
+                        speakCommand('debug feed', 'other');
                         state.feedCount[fruitId] += amount;
 
                         addMsg(t('msg_debug_feed', fruitId, amount, state.feedCount[fruitId]), 'warning');
@@ -1656,7 +1709,7 @@
                         }
                         
                         addMsg(t('msg_debug_setpet', targetForm.emoji, targetForm.name), 'warning');
-                        speakCommand('debug set pet');
+                        speakCommand('debug set pet', 'other');
                         registerToDex(targetForm.id);
 
                         save();
@@ -1683,7 +1736,7 @@
         // Egg stage
         if (state.stage === STAGE_EGG) {
             if (cmd === 'knock') {
-                speakCommand('knock');
+                speakCommand('knock', 'other');
                 doKnock();
             } else {
                 addMsg(t('msg_cmd_unknown_egg', raw.trim()), 'error');
@@ -1693,11 +1746,11 @@
 
         // Hatched stages
         switch (cmd) {
-            case 'feed':   speakCommand('feed');   openFeed();   break;
-            case 'clean':  speakCommand('clean');  doClean();  break;
-            case 'play':   speakCommand('play');   doPlay();   break;
-            case 'battle': speakCommand('battle'); doBattle(); break;
-            case 'rename': speakCommand('rename'); doRename(); break;
+            case 'feed':   speakCommand('feed', 'other');   openFeed();   break;
+            case 'clean':  speakCommand('clean', 'other');  doClean();  break;
+            case 'play':   speakCommand('play', 'other');   doPlay();   break;
+            case 'battle': speakCommand('battle', 'other'); doBattle(); break;
+            case 'rename': speakCommand('rename', 'other'); doRename(); break;
             default:
                 addMsg(t('msg_cmd_unknown'), 'error');
         }
@@ -1780,7 +1833,7 @@
             addMsg(t('msg_feed_invalid', ids), 'error');
             return;
         }
-        speakCommand(cmd);
+        speakCommand(cmd, 'feed');
         closeFeed();
 
         state.hunger = Math.min(MAX_HUNGER, state.hunger + 1);
@@ -1836,7 +1889,7 @@
             cmdInput.placeholder = t('ui_cmd_prompt');
             return;
         }
-        speakCommand(newName);
+        speakCommand(newName, 'other');
         const oldName = getPetName();
         state.customName = newName;
 
@@ -1867,7 +1920,7 @@
 
         // Render pest info
         pestImg.src = pest.img;
-        pestImg.onclick = () => speakCommand(pest.id.toLowerCase());
+        pestImg.onclick = () => speakCommand(pest.id.toLowerCase(), 'pest');
         pestNameLocal.textContent = pest.names[currentLang] || pest.names['en'];
 
 
@@ -1898,7 +1951,7 @@
 
         if (normalizedCmd === targetId || normalizedCmd === targetEn) {
             // Success!
-            speakCommand(cmd); // Speak the original command including spaces
+            speakCommand(cmd, 'pest'); // Speak the original command including spaces
 
             const poops = poopArea.querySelectorAll('.poop');
 
@@ -1976,7 +2029,7 @@
             addMsg(t('msg_rps_invalid'), 'error');
             return;
         }
-        speakCommand(cmd);
+        speakCommand(cmd, 'other');
 
         const playerChoice = cmd;
 
@@ -2318,11 +2371,25 @@
             p.classList.add(colors[Math.floor(Math.random() * colors.length)]);
 
             const isPlayer = fromSide === 'player';
-            
-            const startX = isPlayer ? 155 : (rect.width - 155);
-            const startY = isPlayer ? (rect.height - 180) : 80;
-            const endX = isPlayer ? (rect.width - 155) : 155;
-            const endY = isPlayer ? 80 : (rect.height - 180);
+            const isMobileLayout = document.body.classList.contains('mobile-mode');
+
+            let startX, startY, endX, endY;
+
+            if (isMobileLayout) {
+                // Mobile: sprite 110px, player at margin-left:15, opponent at margin-right:20
+                // Player center X ≈ 15 + 55 = 70; Opponent center X ≈ rect.width - 20 - 55 = rect.width - 75
+                // Player Y ≈ rect.height - 35(margin-bottom) - 55(half sprite) - 30(hp+name) ≈ rect.height - 120
+                // Opponent Y ≈ 10(margin-top) + 8(hp) + 55(half sprite) ≈ 73
+                startX = isPlayer ? 70 : (rect.width - 75);
+                startY = isPlayer ? (rect.height - 120) : 73;
+                endX   = isPlayer ? (rect.width - 75) : 70;
+                endY   = isPlayer ? 73 : (rect.height - 120);
+            } else {
+                startX = isPlayer ? 155 : (rect.width - 155);
+                startY = isPlayer ? (rect.height - 180) : 80;
+                endX   = isPlayer ? (rect.width - 155) : 155;
+                endY   = isPlayer ? 80 : (rect.height - 180);
+            }
 
             p.style.setProperty('--tx-start', startX + 'px');
             p.style.setProperty('--ty-start', startY + 'px');
@@ -2330,16 +2397,20 @@
             p.style.setProperty('--ty-end', endY + 'px');
 
             if (type === 'miss') {
-                // Player miss: fly to the left; Opponent miss: fly upward (existing behavior)
-                const missX = isPlayer ? (endX - 100) : endX;
-                const missY = isPlayer ? endY : (endY - 60);
+                // Player miss: fly to the left; Opponent miss: fly upward
+                const missX = isPlayer ? (endX - 80) : endX;
+                const missY = isPlayer ? endY : (endY - 50);
                 p.style.setProperty('--tx-miss', missX + 'px');
                 p.style.setProperty('--ty-miss', missY + 'px');
                 p.classList.add('animate-projectile-miss');
             } else if (type === 'loop') {
                 // Loop: fly toward target mid-point then return
-                const midX = isPlayer ? (rect.width - 180) : 180;
-                const midY = isPlayer ? 130 : (rect.height - 230);
+                const midX = isMobileLayout
+                    ? (isPlayer ? (rect.width - 90) : 85)
+                    : (isPlayer ? (rect.width - 180) : 180);
+                const midY = isMobileLayout
+                    ? (isPlayer ? 100 : (rect.height - 150))
+                    : (isPlayer ? 130 : (rect.height - 230));
                 p.style.setProperty('--tx-mid', midX + 'px');
                 p.style.setProperty('--ty-mid', midY + 'px');
                 p.classList.add('animate-projectile-loop');
@@ -2468,11 +2539,11 @@
 
 
     // ---- Modal Button Listeners (Audio-Only) ----
-    if (dexBackBtn) dexBackBtn.onclick = () => speakCommand('back');
-    if ($('clean-back-btn')) $('clean-back-btn').onclick = () => speakCommand('back');
-    if ($('feed-back-btn')) $('feed-back-btn').onclick = () => speakCommand('back');
-    if ($('lang-back-btn')) $('lang-back-btn').onclick = () => speakCommand('back');
-    if ($('hof-close-btn')) $('hof-close-btn').onclick = () => speakCommand('back');
+    if (dexBackBtn) dexBackBtn.onclick = () => speakCommand('back', 'other');
+    if ($('clean-back-btn')) $('clean-back-btn').onclick = () => speakCommand('back', 'other');
+    if ($('feed-back-btn')) $('feed-back-btn').onclick = () => speakCommand('back', 'other');
+    if ($('lang-back-btn')) $('lang-back-btn').onclick = () => speakCommand('back', 'other');
+    if ($('hof-close-btn')) $('hof-close-btn').onclick = () => speakCommand('back', 'other');
 
     // Rename Modal Listeners
     if (renameConfirmBtn) {
@@ -2496,7 +2567,7 @@
     document.querySelectorAll('.rps-choice').forEach(btn => {
         btn.onclick = () => {
             const choice = btn.dataset.choice;
-            if (choice) speakCommand(choice);
+            if (choice) speakCommand(choice, 'rps');
         };
     });
 
@@ -2504,7 +2575,7 @@
     document.querySelectorAll('.lang-choice').forEach(btn => {
         btn.onclick = () => {
             const cmd = btn.querySelector('span:last-child').textContent.toLowerCase();
-            speakCommand(cmd);
+            speakCommand(cmd, 'other');
         };
     });
 
