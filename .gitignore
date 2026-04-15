@@ -15,6 +15,7 @@ images/back/
 # --- AI & Editor Config ---
 .cursorrules
 .vscode/
+skills/
 
 # --- System & Logs ---
 .DS_Store

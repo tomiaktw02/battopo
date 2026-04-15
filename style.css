@@ -1708,6 +1708,71 @@ body {
     .mobile-mode #message-log {
         max-height: 40px;
     }
+
+    /* Overlay adjustments for mobile keyboard */
+    .mobile-mode #dex-overlay,
+    .mobile-mode #hof-overlay,
+    .mobile-mode #leave-overlay {
+        bottom: 300px; /* Stay above the keyboard + input area */
+    }
+
+    .mobile-mode #dex-modal,
+    .mobile-mode #hof-modal {
+        max-height: 95%;
+        padding: 12px;
+    }
+
+    .mobile-mode #dex-grid {
+        grid-template-columns: repeat(3, 1fr); /* 3 cols on mobile for better visibility */
+        gap: 6px;
+    }
+
+    .mobile-mode #feed-overlay,
+    .mobile-mode #lang-overlay {
+        align-items: flex-start;
+        padding-top: 40px;
+        padding-bottom: 300px;
+        overflow-y: auto;
+    }
+
+    .mobile-mode #feed-modal,
+    .mobile-mode #lang-modal {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .mobile-mode #feed-choices {
+        gap: 8px;
+    }
+
+    .mobile-mode .feed-choice {
+        min-width: 80px;
+        padding: 8px 4px;
+    }
+
+    .mobile-mode #rps-overlay,
+    .mobile-mode #clean-overlay {
+        align-items: flex-start;
+        padding-top: 60px;
+        padding-bottom: 300px;
+        overflow-y: auto;
+    }
+
+    .mobile-mode #rps-modal,
+    .mobile-mode #clean-modal {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .mobile-mode #pest-img {
+        width: 70px; /* Smaller image to save space */
+        height: 70px;
+    }
+
+    .mobile-mode #pest-display {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
 }
 
 /* Force zero padding on mobile to let the JS spacer handle it */
