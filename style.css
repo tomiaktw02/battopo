@@ -172,7 +172,6 @@ body {
     justify-content: center;
     font-size: 26px;
     position: relative;
-    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     user-select: none;
     backdrop-filter: blur(4px);
     box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05);
@@ -192,9 +191,7 @@ body {
 }
 
 .action-btn:hover {
-    border-color: var(--accent-fire);
-    box-shadow: 0 0 20px rgba(255, 107, 53, 0.35), inset 0 0 15px rgba(255, 255, 255, 0.1);
-    transform: translateY(-4px) scale(1.05);
+    opacity: 0.9;
 }
 
 .action-btn:hover .action-tooltip {
@@ -578,15 +575,11 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    cursor: default;
 }
 
 .feed-choice:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: var(--accent-warm);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(247, 147, 30, 0.2);
 }
 
 .feed-choice-emoji {
@@ -625,13 +618,10 @@ body {
     font-family: var(--font-main);
     font-size: 13px;
     font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
+    cursor: default;
 }
 
 #feed-cancel-btn:hover {
-    border-color: var(--text-secondary);
-    color: var(--text-secondary);
     background: rgba(255, 255, 255, 0.05);
 }
 
@@ -726,7 +716,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    cursor: default;
     gap: 4px;
 }
 
@@ -1094,16 +1084,13 @@ body {
     font-size: 12px;
     font-family: var(--font-main);
     font-weight: 700;
-    cursor: pointer;
-    transition: all 0.25s;
+    cursor: default;
+    transition: none;
     letter-spacing: 1px;
 }
 
 #dex-close-btn:hover {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 107, 53, 0.15));
-    border-color: rgba(255, 215, 0, 0.4);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.15);
+    opacity: 0.9;
 }
 
 /* ===== Utility ===== */
@@ -1471,6 +1458,13 @@ body {
 #lang-overlay { position: absolute; inset: 0; background: rgba(15, 15, 26, 0.9); display: flex; align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(6px); }
 #lang-overlay.hidden { display: none; }
 .lang-choice:hover { background: rgba(46, 204, 113, 0.2) !important; border-color: var(--accent-green) !important; cursor: default; }
+#lang-back-btn:hover { cursor: default; border-color: var(--accent-warm); opacity: 0.9; }
+#clean-back-btn:hover { cursor: default; border-color: var(--accent-warm); opacity: 0.9; }
+#feed-back-btn:hover { cursor: default; border-color: var(--accent-warm); opacity: 0.9; }
+#hof-close-btn:hover { cursor: default; border-color: var(--text-secondary); opacity: 0.9; }
+#dex-back-btn:hover { cursor: default; opacity: 0.9; }
+.hof-back-item { cursor: default !important; }
+.hof-back-item:hover { transform: none !important; box-shadow: none !important; }
 
 /* ---- Lang Tooltip (Top Right) ---- */
 #lang-btn-display {

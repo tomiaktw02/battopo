@@ -1283,6 +1283,12 @@
 
         // If in a modal mode, prioritize those handlers
         if (state.isRps) {
+            if (cmd === 'back') {
+                state.isRps = false;
+                rpsOverlay.classList.add('hidden');
+                cmdInput.placeholder = t('ui_cmd_prompt');
+                return;
+            }
             handleRPS(cmd);
             return;
         }
@@ -2240,6 +2246,7 @@
 
 
 
+    /* [移除了點擊功能，改為指令操作]
     dexBackBtn.addEventListener('click', closeDex);
     if ($('clean-back-btn')) $('clean-back-btn').addEventListener('click', closeClean);
     if ($('feed-back-btn')) $('feed-back-btn').addEventListener('click', closeFeed);
@@ -2254,6 +2261,7 @@
             }
         });
     }
+    */
 
     // Keyboard scrolling for Dex
     window.addEventListener('keydown', (e) => {
