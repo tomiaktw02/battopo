@@ -384,11 +384,11 @@ const PEST_CONFIG = [
         }
     },
     {
-        id: "gnat",
-        img: "images/bugs/gnat.png",
+        id: "blackfly",
+        img: "images/bugs/blackfly.png",
         names: {
             "zh-TW": "蚋",
-            "en": "Gnat",
+            "en": "Black fly",
             "ja": "ブユ"
         },
         descriptions: {

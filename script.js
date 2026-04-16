@@ -42,6 +42,7 @@
     const DEX_KEY = 'battopo_dex';
     const HOF_KEY = 'battopo_hof';
     const SOUND_KEY = 'battopo_sound_mode'; // 0=off, 1=partial, 2=full
+    const ACCENT_KEY = 'battopo_voice_accent'; // 'us' or 'uk'
 
     const LIFESPAN_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
 
@@ -109,6 +110,7 @@
     const renameInput      = $('rename-input');
     const renameConfirmBtn = $('rename-confirm-btn');
     const renameCancelBtn  = $('rename-cancel-btn');
+    const pestImgWrapper   = $('pest-img-wrapper');
 
     // ---- Mobile Keyboard Logic ----
     function initMobileKeyboard() {
@@ -281,14 +283,12 @@
         updateLanguageUI();
         initMobileKeyboard();
         initDragScroll();
-        // Initialize sound button
-        renderSoundBtn();
-        const soundBtn = document.getElementById('sound-mode-btn');
-        if (soundBtn) {
-            soundBtn.addEventListener('click', () => {
-                cycleSoundMode();
-            });
-        }
+        // Initialize status icons (sound & accent)
+        renderStatusIcons();
+        initStaticSoundIndicators();
+        
+        // Sound and Accent icons are now static (status only)
+        // No click listeners for sound-mode-btn or accent-mode-btn
     });
 
     // ---- Sound Mode (0=off, 1=partial, 2=full) ----
@@ -302,25 +302,64 @@
 
     function setSoundMode(mode) {
         localStorage.setItem(SOUND_KEY, String(mode));
-        renderSoundBtn();
+        renderStatusIcons();
     }
 
-    function cycleSoundMode() {
-        // Cycle: 2(全開) → 1(非重點關閉) → 0(全關閉) → 2(全開)
-        const cycleMap = { 2: 1, 1: 0, 0: 2 };
-        setSoundMode(cycleMap[getSoundMode()]);
+    function getVoiceAccent() {
+        return localStorage.getItem(ACCENT_KEY) || 'us';
     }
 
-    function renderSoundBtn() {
-        const btn = document.getElementById('sound-mode-btn');
-        if (!btn) return;
-        const mode = getSoundMode();
-        const icons  = ['🔇', '🔉', '🔊'];
-        const labels = ['sound off', 'sound partial', 'sound on'];
-        btn.querySelector('.sound-icon').textContent = icons[mode];
-        btn.querySelector('.sound-label').textContent = ['off', 'partial', 'on'][mode];
-        btn.title = labels[mode];
-        btn.dataset.soundMode = mode; // used by CSS for state-based styling
+    function setVoiceAccent(accent) {
+        localStorage.setItem(ACCENT_KEY, accent);
+        renderStatusIcons();
+    }
+
+    function renderStatusIcons() {
+        // Render Sound Icon
+        const soundBtn = document.getElementById('sound-mode-btn');
+        if (soundBtn) {
+            const mode = getSoundMode();
+            const icons  = ['🔇', '🔉', '🔊'];
+            const labels = ['off', 'partial', 'on'];
+            soundBtn.querySelector('.sound-icon').textContent = icons[mode];
+            soundBtn.querySelector('.sound-label').textContent = labels[mode];
+            soundBtn.dataset.soundMode = mode;
+            
+            // Tooltip handled by global system (see below)
+        }
+
+        // Render Accent Icon
+        const accentBtn = document.getElementById('accent-mode-btn');
+        if (accentBtn) {
+            const accent = getVoiceAccent();
+            accentBtn.querySelector('.accent-label').textContent = accent.toUpperCase();
+            accentBtn.dataset.accent = accent;
+        }
+        
+        // Update tooltips for these status icons
+        initStatusIconTooltips();
+        
+        // Update all mini-indicators on the screen
+        updateAllSoundIndicators();
+    }
+
+    function initStatusIconTooltips() {
+        const soundBtn = document.getElementById('sound-mode-btn');
+        const accentBtn = document.getElementById('accent-mode-btn');
+        const langBtn = document.getElementById('lang-btn-display');
+
+        if (soundBtn) {
+            soundBtn.onmouseenter = () => showActionTooltip(soundBtn, t('ui_sound_title'), t('ui_sound_tooltip'));
+            soundBtn.onmouseleave = hideActionTooltip;
+        }
+        if (accentBtn) {
+            accentBtn.onmouseenter = () => showActionTooltip(accentBtn, t('ui_accent_title'), t('ui_accent_tooltip'));
+            accentBtn.onmouseleave = hideActionTooltip;
+        }
+        if (langBtn) {
+            langBtn.onmouseenter = () => showActionTooltip(langBtn, t('ui_lang_title'), t('ui_lang_tooltip'));
+            langBtn.onmouseleave = hideActionTooltip;
+        }
     }
 
     // ---- Speech Synthesis ----
@@ -339,9 +378,60 @@
             window.speechSynthesis.cancel();
         }
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
+        
+        // Accent switch
+        const accent = getVoiceAccent();
+        utterance.lang = (accent === 'uk') ? 'en-GB' : 'en-US';
+        
         utterance.rate = 1.0;
         window.speechSynthesis.speak(utterance);
+    }
+
+    // ---- Sound Indicators ----
+    // type: 'feed' | 'rps' | 'pest' | 'other'
+    function getSoundMiniIcon(type) {
+        const mode = getSoundMode();
+        if (mode === 0) return '🔇';
+        if (mode === 1) {
+            if (type === 'feed' || type === 'rps' || type === 'pest') return '🔉';
+            return '🔇';
+        }
+        return '🔊';
+    }
+
+    function injectSoundIndicator(parent, type) {
+        if (!parent) return;
+        // Check if already has indicator
+        let indicator = parent.querySelector('.sound-indicator');
+        if (!indicator) {
+            indicator = document.createElement('span');
+            indicator.className = 'sound-indicator';
+            parent.appendChild(indicator);
+        }
+        indicator.textContent = getSoundMiniIcon(type);
+        indicator.dataset.speechType = type;
+    }
+
+    function updateAllSoundIndicators() {
+        document.querySelectorAll('.sound-indicator').forEach(el => {
+            const type = el.dataset.speechType;
+            el.textContent = getSoundMiniIcon(type);
+        });
+    }
+
+    function initStaticSoundIndicators() {
+        // RPS
+        document.querySelectorAll('.rps-choice').forEach(btn => injectSoundIndicator(btn, 'rps'));
+        // Lang
+        document.querySelectorAll('.lang-choice').forEach(btn => injectSoundIndicator(btn, 'other'));
+        // Modals Back
+        injectSoundIndicator($('dex-back-btn'), 'other');
+        injectSoundIndicator($('hof-close-btn'), 'other');
+        injectSoundIndicator($('lang-back-btn'), 'other');
+        injectSoundIndicator($('feed-back-btn'), 'other');
+        injectSoundIndicator($('clean-back-btn'), 'other');
+        // Pest
+        if (pestImgWrapper) injectSoundIndicator(pestImgWrapper, 'pest');
     }
 
 
@@ -398,6 +488,7 @@
             isDexMode: false,        // tracked for "back" command
             isCleaningMode: false,   // NEW: tracking if cleaning mini-game is active
             currentPest: null,       // NEW: current pest to identify
+            accent: 'us',            // NEW: voice accent selection
         };
     }
 
@@ -661,6 +752,7 @@
                 <span class="feed-choice-name">${t(fruit.nameKey) || fruit.id}</span>
                 <span class="feed-choice-cmd">${fruit.id}</span>
             `;
+            injectSoundIndicator(btn, 'feed');
             btn.onclick = () => speakCommand(fruit.id, 'feed');
             feedChoices.appendChild(btn);
 
@@ -731,7 +823,7 @@
         state.isHofMode = false;
         state.isDexMode = false;
         state.isCleaningMode = false;
-        state.currentPest = null;
+
 
         // Ensure persistent data fields exist
         if (state.feedCount === undefined) state.feedCount = { apple: 0, orange: 0, lemon: 0, grape: 0, guava: 0 };
@@ -740,6 +832,7 @@
         if (state.battleDebug === undefined) state.battleDebug = false;
         if (state.wins === undefined) state.wins = 0;
         if (state.totalBattles === undefined) state.totalBattles = 0;
+        if (state.accent === undefined) state.accent = 'us';
         
         // If stats are missing, try to initialize them
         if (!state.stats && state.currentFormId) {
@@ -1295,7 +1388,7 @@
 
     function renderPoops() {
         poopArea.innerHTML = '';
-        if (state.stage === STAGE_EGG || state.isRps || state.isFeedMode || state.isCleaningMode) return;
+        if (state.stage === STAGE_EGG || state.isRps || state.isFeedMode) return;
         for (let i = 0; i < state.poopCount; i++) {
             const p = document.createElement('div');
             p.className = 'poop';
@@ -1370,6 +1463,7 @@
         };
 
         btn.innerHTML = `${a.emoji}`;
+        injectSoundIndicator(btn, 'other');
         actionButtons.appendChild(btn);
     }
 
@@ -1385,12 +1479,21 @@
         const containerRect = $('game-container').getBoundingClientRect();
         
         const top = (rect.top - containerRect.top) + (rect.height / 2);
-        const left = (rect.right - containerRect.left) + 8;
+        
+        // Smart positioning: if element is in the right half of the container, show tooltip on the left
+        const isRightSide = (rect.left - containerRect.left) > (containerRect.width / 2);
+        
+        if (isRightSide) {
+            const left = (rect.left - containerRect.left) - 8;
+            globalTooltip.style.left = `${left}px`;
+            globalTooltip.style.transform = `translateY(-50%) translateX(-100%)`;
+        } else {
+            const left = (rect.right - containerRect.left) + 8;
+            globalTooltip.style.left = `${left}px`;
+            globalTooltip.style.transform = `translateY(-50%)`;
+        }
         
         globalTooltip.style.top = `${top}px`;
-        globalTooltip.style.left = `${left}px`;
-        globalTooltip.style.transform = `translateY(-50%)`;
-        
         globalTooltip.classList.remove('hidden');
     }
 
@@ -1472,7 +1575,14 @@
         if (cmd === 'load') { speakCommand('load', 'other'); importSaveFile(); return; }
         if (cmd === 'bestiary') { speakCommand('bestiary', 'other'); openDex(); return; }
         if (cmd === 'hof') { speakCommand('hall of fame', 'other'); openHof(); return; }
-        if (cmd === 'lang') { speakCommand('language', 'other'); openLang(); return; }
+        if (cmd === 'language') { speakCommand('language', 'other'); openLang(); return; }
+
+        if (cmd === 'full') { speakCommand('sound full', 'other'); setSoundMode(2); addMsg(t('msg_sound_set', 'FULL'), 'success'); return; }
+        if (cmd === 'partial') { speakCommand('sound partial', 'other'); setSoundMode(1); addMsg(t('msg_sound_set', 'PARTIAL'), 'success'); return; }
+        if (cmd === 'mute') { speakCommand('sound mute', 'other'); setSoundMode(0); addMsg(t('msg_sound_set', 'MUTE'), 'success'); return; }
+
+        if (cmd === 'accent uk') { setVoiceAccent('uk'); speakCommand('accent UK', 'other'); addMsg(t('msg_accent_set', 'UK'), 'success'); return; }
+        if (cmd === 'accent us') { setVoiceAccent('us'); speakCommand('accent US', 'other'); addMsg(t('msg_accent_set', 'US'), 'success'); return; }
         if (cmd === 'log_battle') {
             speakCommand('log battle', 'other');
             state.battleDebug = !state.battleDebug;
@@ -1889,7 +1999,6 @@
             cmdInput.placeholder = t('ui_cmd_prompt');
             return;
         }
-        speakCommand(newName, 'other');
         const oldName = getPetName();
         state.customName = newName;
 
@@ -1913,14 +2022,18 @@
     }
 
     function openClean() {
-        // Randomly pick a pest
-        const pest = PEST_CONFIG[Math.floor(Math.random() * PEST_CONFIG.length)];
-        state.currentPest = pest;
+        // Randomly pick a pest if not already set
+        if (!state.currentPest) {
+            state.currentPest = PEST_CONFIG[Math.floor(Math.random() * PEST_CONFIG.length)];
+            save(); // Ensure new pest is persisted immediately
+        }
+        const pest = state.currentPest;
         state.isCleaningMode = true;
 
         // Render pest info
         pestImg.src = pest.img;
         pestImg.onclick = () => speakCommand(pest.id.toLowerCase(), 'pest');
+        injectSoundIndicator($('pest-img-wrapper'), 'pest');
         pestNameLocal.textContent = pest.names[currentLang] || pest.names['en'];
 
 
@@ -1935,7 +2048,6 @@
 
     function closeClean() {
         state.isCleaningMode = false;
-        state.currentPest = null;
         cleanOverlay.classList.add('hidden');
         cmdInput.placeholder = t('ui_cmd_prompt');
         renderPoops();
@@ -1962,6 +2074,7 @@
             addMsg(t('msg_clean_success', getStatDesc('poop', state.poopCount).text), 'success');
             showEmotion('🧹');
             
+            state.currentPest = null;
             closeClean();
             save();
             renderAll();

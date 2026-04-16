@@ -18,19 +18,20 @@
             <div id="header-top-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div id="pet-name-display" data-i18n="ui_egg_name">🥚 蛋</div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <!-- Sound Mode Toggle Button -->
-                    <div id="sound-mode-btn" style="font-size: 10px; color: var(--text-secondary); cursor: pointer; display: flex; flex-direction: column; align-items: center; user-select: none; padding: 2px 4px; border-radius: 6px; border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;">
+                    <!-- Sound Mode Status Icon -->
+                    <div id="sound-mode-btn" style="font-size: 10px; color: var(--text-secondary); cursor: help; display: flex; flex-direction: column; align-items: center; user-select: none; padding: 2px 4px; border-radius: 6px; border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;">
                         <span class="sound-icon" style="font-size: 16px;">🔊</span>
                         <span class="sound-label">on</span>
                     </div>
+                    <!-- Voice Accent Status Icon -->
+                    <div id="accent-mode-btn" style="font-size: 10px; color: var(--text-secondary); cursor: help; display: flex; flex-direction: column; align-items: center; user-select: none; padding: 2px 4px; border-radius: 6px; border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;">
+                        <span class="accent-icon" style="font-size: 16px;">🗣️</span>
+                        <span class="accent-label">US</span>
+                    </div>
                     <!-- Lang Button -->
-                    <div id="lang-btn-display" style="font-size: 10px; color: var(--text-secondary); cursor: help; display: flex; flex-direction: column; align-items: flex-end;">
-                        <div class="lang-tooltip">
-                            <span class="tooltip-name" data-i18n="ui_lang_title">語言/Language</span>
-                            <span class="tooltip-desc" data-i18n="ui_lang_tooltip">切換遊戲語言設定</span>
-                        </div>
+                    <div id="lang-btn-display" style="font-size: 10px; color: var(--text-secondary); cursor: help; display: flex; flex-direction: column; align-items: center;">
                         <span style="font-size: 16px;">🌐</span>
-                        <span>lang</span>
+                        <span>language</span>
                     </div>
                 </div>
             </div>
@@ -220,7 +221,9 @@
             <div id="clean-modal">
                 <h2 data-i18n="ui_clean_title">🚿 環境清理 🚿</h2>
                 <div id="pest-display">
-                    <img id="pest-img" src="" alt="蟲蟲">
+                    <div id="pest-img-wrapper">
+                        <img id="pest-img" src="" alt="蟲蟲">
+                    </div>
                     <div id="pest-info">
                         <div id="pest-name-row">
                             <span id="pest-name-local"></span>

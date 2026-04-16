@@ -193,6 +193,16 @@ body {
     box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
+.sound-indicator {
+    position: absolute;
+    bottom: 0px;
+    right: 2px;
+    font-size: 11px;
+    pointer-events: none;
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+    z-index: 10;
+}
+
 .action-btn::before {
     content: '';
     position: absolute;
@@ -593,6 +603,7 @@ body {
     align-items: center;
     gap: 6px;
     cursor: default;
+    position: relative;
 }
 
 .feed-choice:hover {
@@ -657,6 +668,7 @@ body {
     gap: 4px;
     transition: all 0.2s ease;
     user-select: none;
+    position: relative;
 }
 
 
@@ -735,6 +747,7 @@ body {
     justify-content: center;
     cursor: default;
     gap: 4px;
+    position: relative;
 }
 
 .rps-emoji {
@@ -1925,4 +1938,19 @@ body {
 #sound-mode-btn[data-sound-mode="0"] {
     color: var(--text-secondary);
     opacity: 0.5;
+}
+
+.lang-choice {
+    position: relative;
+}
+
+#pest-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#pest-img-wrapper {
+    position: relative;
+    display: inline-block;
 }
