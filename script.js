@@ -863,79 +863,7 @@
         return cachedFormInfo ? cachedFormInfo.img : 'images/baby.png';
     }
 
-    // ---- File Save / Load ----
-    function exportSaveFile() {
-        save(); // ensure latest state
-        const data = JSON.stringify(state, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const formName = state.currentFormId || 'egg';
-        const dateStr = new Date().toISOString().slice(0, 10);
-        a.href = url;
-        a.download = `battopo_${formName}_${dateStr}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        addMsg(`💾 存檔已下載: battopo_${formName}_${dateStr}.json`, 'success');
-    }
 
-    function importSaveFile() {
-        loadFileInput.click();
-    }
-
-    function handleFileLoad(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const loaded = JSON.parse(e.target.result);
-                // Validate it looks like a save file
-                if (!loaded || typeof loaded.stage === 'undefined') {
-                    addMsg(t('msg_save_invalid'), 'error');
-                    return;
-                }
-                state = loaded;
-                ensureStateFields();
-
-                // Calculate time passage since the save
-                if (!state.left) {
-                    processTimePassage();
-                }
-
-                // Sync to localStorage too
-                save();
-
-                // Re-render everything
-                leaveOverlay.classList.add('hidden');
-                rpsOverlay.classList.add('hidden');
-                state.isRps = false;
-
-                if (state.left) {
-                    renderAll();
-                    triggerLeave('unknown');
-                } else {
-                    renderAll();
-                    addMsg(t('msg_save_loaded', getPetName()), 'success');
-
-                    // Show time-passage summary
-                    const elapsed = Date.now() - (state.lastSaved || Date.now());
-                    if (elapsed > 60000) {
-                        const hrs = Math.floor(elapsed / 3600000);
-                        const mins = Math.floor((elapsed % 3600000) / 60000);
-                        if (hrs > 0) {
-                            addMsg(t('msg_time_passed_hrs', hrs, mins), 'info');
-                        } else {
-                            addMsg(t('msg_time_passed_mins', mins), 'info');
-                        }
-                    }
-                }
-            } catch (err) {
-                addMsg(t('msg_save_failed'), 'error');
-            }
-        };
-        reader.readAsText(file);
-    }
 
     // ---- Time-based Updates ----
     function processTimePassage() {
@@ -1408,8 +1336,6 @@
         const systemActions = [
             { id: 'hof',  emoji: '🏆', label: 'HOF',  desc: t('ui_hof_desc'), speak: 'hall of fame' },
             { id: 'bestiary', emoji: '📖', label: 'BESTIARY', desc: t('ui_dex_desc') },
-            { id: 'save', emoji: '💾', label: 'SAVE', desc: t('ui_save_desc') },
-            { id: 'load', emoji: '📂', label: 'LOAD', desc: t('ui_load_desc') },
         ];
 
         if (state.left || state.dead) {
@@ -1570,9 +1496,7 @@
         const cmd = raw.trim().toLowerCase();
         if (!cmd) return;
 
-        // Save/Load/Dex always available
-        if (cmd === 'save') { speakCommand('save', 'other'); exportSaveFile(); return; }
-        if (cmd === 'load') { speakCommand('load', 'other'); importSaveFile(); return; }
+        // System commands always available
         if (cmd === 'bestiary') { speakCommand('bestiary', 'other'); openDex(); return; }
         if (cmd === 'hof') { speakCommand('hall of fame', 'other'); openHof(); return; }
         if (cmd === 'language') { speakCommand('language', 'other'); openLang(); return; }
@@ -2710,14 +2634,7 @@
 
 
 
-    // File input listener
-    loadFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            handleFileLoad(file);
-            loadFileInput.value = ''; // reset so same file can be loaded again
-        }
-    });
+
 
     // Focus input on page load
     window.addEventListener('load', () => {
