@@ -1,431 +1,442 @@
-﻿// =========================================================
-// Battopo - ?脣?閮剖?銵?// 靽格甇斗?獢?湔敶梢?銝剔??脣?璇辣??閮剖秘?拙?蝔?// =========================================================
+// =========================================================
+// Battopo - 分支進化配置表
+// 修改此檔案可以調整遊戲中寵物成長各階段的型態與進化條件。
+// =========================================================
 
 const EVOLUTION_CONFIG = {
 
-    // ==================== ???? ====================
+    // ==================== 初始階段 ====================
     baby: {
         id: 'baby',
-        name: '撠暺?,
-        emoji: '??,
+        name: '小黑點',
+        emoji: '⚫',
         img: 'images/pets/baby.png',
-        description: '撠??質?擃??????敺株歲??,
+        description: '幼年期的基本形式，非常活潑，需要細心照顧才能成長。',
         stats: { hp: 1, atk: 4, def: 4, spd: 5 }
     },
 
     baby_black: {
         id: 'baby_black',
-        name: '撠?暺?,
-        emoji: '??,
+        name: '小黑點',
+        emoji: '⚫',
         img: 'images/pets/baby_black.png',
-        description: '瘛梢???暺?嚗?潸?敺桀摹?厭?除??,
+        description: '深色的小黑點，常隱匿在黑暗的角落裡。',
         stats: { hp: 1, atk: 5, def: 3, spd: 3 }
     },
 
-    // ==================== 銝?脣? (?賡?頝臬?) ====================
+    // ==================== 一階進化 (普通/彩色) ====================
     stage1: [
         {
             id: 'mud_pig',
-            name: '瘜亦鞊?,
-            emoji: '?',
+            name: '泥巴豬',
+            emoji: '🐗',
             img: 'images/pets/mud_pig.png',
             condition: 'dirty',
-            description: '皜?摨虫?嚗噶靘踵遛4??',
+            description: '環境清潔度低（便便超過4個）。',
             stats: { hp: 3, atk: 7, def: 11, spd: 4 }
         },
         {
             id: 'rainbow_dove',
-            name: '?寧噬暾?,
-            emoji: '??儭?,
+            name: '彩虹鴿',
+            emoji: '🕊️',
             img: 'images/pets/rainbow_dove.png',
             condition: 'balanced',
-            description: '鈭車憿憌潭??賊?摰?詨?嚗?蝔栽1嚗?,
+            description: '五種屬性進食量完全平均（皆大於1）。',
             stats: { hp: 2, atk: 12, def: 9, spd: 14 }
         },
         {
             id: 'fire_rat',
-            name: '?偏曌?,
-            emoji: '?',
+            name: '火花鼠',
+            emoji: '🔥',
             img: 'images/pets/fire_rat.png',
             condition: 'most_red',
-            description: '蝝憌?賊??憭?,
+            description: '紅色水果進食量最多。',
             stats: { hp: 2, atk: 14, def: 7, spd: 10 }
         },
         {
             id: 'sprout_deer',
-            name: '?質?暽?,
-            emoji: '?',
+            name: '嫩芽鹿',
+            emoji: '🦌',
             img: 'images/pets/sprout_deer.png',
             condition: 'most_green',
-            description: '蝬憌?賊??憭?,
+            description: '綠色水果進食量最多。',
             stats: { hp: 3, atk: 8, def: 9, spd: 10 }
         },
         {
             id: 'spark_cat',
-            name: '??鞎?,
-            emoji: '??,
+            name: '金光貓',
+            emoji: '🐈',
             img: 'images/pets/spark_cat.png',
             condition: 'most_light',
-            description: '瘛箄憌?賊??憭?,
+            description: '淺色水果進食量最多。',
             stats: { hp: 2, atk: 15, def: 6, spd: 13 }
         },
         {
             id: 'shadow_fox',
-            name: '敶梁???,
-            emoji: '??',
+            name: '影子狐',
+            emoji: '🦊',
             img: 'images/pets/shadow_fox.png',
             condition: 'most_dark',
-            description: '瘛梯憌?賊??憭?,
+            description: '深色水果進食量最多。',
             stats: { hp: 2, atk: 13, def: 8, spd: 10 }
         },
         {
             id: 'fist_lion',
-            name: '?喳偏??,
-            emoji: '??',
+            name: '猛火獅',
+            emoji: '🦁',
             img: 'images/pets/fist_lion.png',
             condition: 'most_orange',
-            description: '璈憌?賊??憭?/ ?身??',
+            description: '橘色水果進食量最多 / 預設進化',
             stats: { hp: 2, atk: 14, def: 8, spd: 4 }
         },
     ],
 
-    // ==================== 銝?脣? (暺?頝臬?) ====================
+    // ==================== 一階進化 (黑化分支) ====================
     stage1_black: [
         {
             id: 'shadow_spider',
-            name: '敶勗??,
-            emoji: '?儭?,
+            name: '影網蜘',
+            emoji: '🕷️',
             img: 'images/pets/shadow_spider.png',
             condition: 'hunger_low',
-            description: '憌賡?摨虫? / 撟賣??脣?',
+            description: '空腹度低 / 飢餓進化',
             stats: { hp: 2, atk: 14, def: 7, spd: 10 }
         },
         {
             id: 'shadow_turtle',
-            name: '?亦樴?,
-            emoji: '?',
+            name: '黑坦龜',
+            emoji: '🐢',
             img: 'images/pets/shadow_turtle.png',
             condition: 'default',
-            description: '?身暺??脣?',
+            description: '預設黑化進化',
             stats: { hp: 3, atk: 6, def: 12, spd: 5 }
         },
     ],
 
-    // ==================== 鈭??脣? ====================
-    // key = 銝????id
-    // value = ??瑕??????”嚗銝??斗
-    // condition 憿?:
-    //   'clean_low'               ??皜?摨虫?嚗噶靘?= MAX_POOP = 4嚗?    //   'clean_high'              ??皜?摨阡?嚗噶靘?= 0嚗?    //   'happy_high'              ??敹急?摨阡?嚗? MAX_HAPPY = 6嚗?    //   'happy_low'               ??敹急?摨虫?嚗? 0嚗?    //   'hunger_low'              ??憌賡?摨虫?嚗? 0嚗?    //   'happy_high_and_clean_high' ??敹急?摨阡? 銝?皜?摨阡?
-    //   'default'                 ???身嚗?摨?瘞賊???嚗?    stage2: {
+    // ==================== 二階進化 ====================
+    // key = 一階型態的 id
+    // value = 各種判定下可能轉向的型態清單，由上而下判定
+    // condition 欄位:
+    //   'clean_low'               -> 環境清潔度低（便便 >= MAX_POOP = 4）
+    //   'clean_high'              -> 環境清潔度高（便便 = 0）
+    //   'happy_high'              -> 快樂度高（= MAX_HAPPY = 6）
+    //   'happy_low'               -> 快樂度低（= 0）
+    //   'hunger_low'              -> 飢餓度低（= 0）
+    //   'happy_high_and_clean_high' -> 快樂度高 且 清潔度高
+    //   'default'                 -> 預設分支（保底，若無對應則用此）
+    stage2: {
 
-        // ---------- 擃?憓株頝舐?嚗惇蝟鳴? ----------
+        // ---------- 泥巴豬系列（肉盾系）： ----------
         mud_pig: [
             {
                 id: 'toxic_boar',
-                name: '瘥票?惇',
-                emoji: '??',
+                name: '猛毒腐甲豬',
+                emoji: '🐗',
                 img: 'images/pets/toxic_boar.png',
                 condition: 'clean_low',
-                description: '皜?摨虫?嚗噶靘踵遛嚗?,
+                description: '清潔度低（髒亂環境）。',
                 stats: { hp: 5, atk: 16, def: 18, spd: 5 },
-                ability: '瘥?撏抵圾'
+                ability: '毒性分泌物'
             },
             {
                 id: 'junk_boar',
-                name: '?撱Ｚ惇',
-                emoji: '?儭?,
+                name: '森林鎧甲豬',
+                emoji: '🐗',
                 img: 'images/pets/junk_boar.png',
                 condition: 'happy_high',
-                description: '敹急?摨阡?嚗?6嚗?,
+                description: '快樂度高（=6）。',
                 stats: { hp: 5, atk: 14, def: 19, spd: 8 },
-                ability: '??鋆'
+                ability: '守護鱗甲'
             },
             {
                 id: 'ghost_boar',
-                name: '?冽野敶梯惇',
-                emoji: '?',
+                name: '荒野影豬',
+                emoji: '🐗',
                 img: 'images/pets/ghost_boar.png',
                 condition: 'default',
-                description: '?身',
+                description: '預設',
                 stats: { hp: 4, atk: 15, def: 14, spd: 11 }
             },
         ],
 
-        // ---------- 敶抵?﹛頝舐?嚗野憿? ----------
+        // ---------- 影狐/彩虹系（神獸系）： ----------
         rainbow_dove: [
             {
                 id: 'aurora_eagle',
-                name: '璆萄?憭拚溯',
-                emoji: '??',
+                name: '極光大天鷹',
+                emoji: '🦅',
                 img: 'images/pets/aurora_eagle.png',
                 condition: 'happy_high_and_clean_high',
-                description: '敹急?摨阡? + 皜?摨阡?',
+                description: '快樂度高 + 清潔度高',
                 stats: { hp: 4, atk: 18, def: 12, spd: 17 },
-                ability: '?瘛?'
+                ability: '神聖閃耀'
             },
             {
                 id: 'chaos_crow',
-                name: '鈭蔗暾?,
-                emoji: '???',
+                name: '渾沌鴿',
+                emoji: '🕊️',
                 img: 'images/pets/chaos_crow.png',
                 condition: 'clean_low',
-                description: '皜?摨虫?',
+                description: '清潔度低',
                 stats: { hp: 3, atk: 19, def: 10, spd: 16 },
-                ability: '??蝢賣?'
+                ability: '崩解羽翼'
             },
             {
                 id: 'flash_falcon',
-                name: '?怠???,
-                emoji: '??',
+                name: '迅疾之隼',
+                emoji: '🦅',
                 img: 'images/pets/flash_falcon.png',
                 condition: 'default',
-                description: '?身',
+                description: '預設',
                 stats: { hp: 3, atk: 17, def: 11, spd: 19 },
-                ability: '敹恍??
+                ability: '極速掠襲'
             },
         ],
 
-        // ---------- 蝝頝舐?嚗?啁頂嚗?----------
+        // ---------- 火花系列（火系）： ----------
         fire_rat: [
             {
                 id: 'blast_rat',
-                name: '?撌券?',
-                emoji: '?',
+                name: '爆衝火鼠',
+                emoji: '🐹',
                 img: 'images/pets/blast_rat.png',
                 condition: 'happy_high',
-                description: '敹急?摨阡?嚗?6嚗?,
+                description: '快樂度高（=6）。',
                 stats: { hp: 3, atk: 19, def: 10, spd: 14 },
-                ability: '?潛?銋'
+                ability: '烈焰突進'
             },
             {
                 id: 'ash_rat',
-                name: '?啁瞏?',
-                emoji: '?儭?,
+                name: '灰燼刺鼠',
+                emoji: '🐹',
                 img: 'images/pets/ash_rat.png',
                 condition: 'clean_low',
-                description: '皜?摨虫?',
+                description: '清潔度低',
                 stats: { hp: 3, atk: 16, def: 14, spd: 17 },
-                ability: '瞏必撠?'
+                ability: '焦土領域'
             },
             {
                 id: 'flame_rat',
-                name: '??菟?',
-                emoji: '?',
+                name: '熔火噴鼠',
+                emoji: '🔥',
                 img: 'images/pets/flame_rat.png',
                 condition: 'default',
-                description: '?身',
+                description: '預設',
                 stats: { hp: 3, atk: 18, def: 12, spd: 12 },
-                ability: '??怎?'
+                ability: '岩漿吐息'
             },
         ],
 
-        // ---------- 蝬頝舐?嚗?嗥頂嚗?----------
+        // ---------- 嫩芽系列（草系）： ----------
         sprout_deer: [
             {
                 id: 'tree_deer',
-                name: '?斗邦撌券嘀',
-                emoji: '?',
+                name: '森羅古鹿',
+                emoji: '🦌',
                 img: 'images/pets/tree_deer.png',
                 condition: 'clean_high',
-                description: '皜?摨阡?嚗靘蹂噶嚗?,
+                description: '清潔度高（無任何便便）。',
                 stats: { hp: 5, atk: 14, def: 18, spd: 8 },
-                ability: '?除??'
+                ability: '森林賜予'
             },
             {
                 id: 'wind_deer',
-                name: '?暸◢?嘀',
-                emoji: '??',
+                name: '蒼翠疾鹿',
+                emoji: '🦌',
                 img: 'images/pets/wind_deer.png',
                 condition: 'happy_high',
-                description: '敹急?摨阡?嚗?6嚗?,
+                description: '快樂度高（=6）。',
                 stats: { hp: 3, atk: 16, def: 14, spd: 18 },
-                ability: '?芰?Ｗ儔'
+                ability: '翠影步法'
             },
             {
                 id: 'wilt_deer',
-                name: '?航??梢嘀',
-                emoji: '??',
+                name: '枯榮之鹿',
+                emoji: '🦌',
                 img: 'images/pets/wilt_deer.png',
                 condition: 'default',
-                description: '?身',
+                description: '預設',
                 stats: { hp: 4, atk: 17, def: 15, spd: 10 },
-                ability: '蝘◢???'
+                ability: '靈氣轉換'
             },
         ],
 
-        // ---------- 暺頝舐?嚗蝟鳴? ----------
+        // ---------- 金光系列（雷系）： ----------
         spark_cat: [
             {
                 id: 'static_cat',
-                name: '?敶梯?',
-                emoji: '??,
+                name: '靜電幻貓',
+                emoji: '🐈',
                 img: 'images/pets/static_cat.png',
                 condition: 'clean_low',
-                description: '皜?摨虫?',
+                description: '清潔度低',
                 stats: { hp: 3, atk: 19, def: 10, spd: 18 },
-                ability: '?暻餌'
+                ability: '靜電屏障'
             },
             {
                 id: 'hunger_cat',
-                name: '憌ａ餈?',
-                emoji: '??,
+                name: '飢荒虎豹',
+                emoji: '🐈',
                 img: 'images/pets/hunger_cat.png',
                 condition: 'hunger_low',
-                description: '憌賡?摨虫?嚗?0嚗?,
+                description: '飢餓度低（=0）。',
                 stats: { hp: 3, atk: 19, def: 8, spd: 19 },
-                ability: '??箸?'
+                ability: '飢渴爆發'
             },
             {
                 id: 'thunder_cat',
-                name: '?琿??啗?',
-                emoji: '??,
+                name: '雷鳴戰貓',
+                emoji: '🐈',
                 img: 'images/pets/thunder_cat.png',
                 condition: 'default',
-                description: '?身',
+                description: '預設',
                 stats: { hp: 4, atk: 18, def: 10, spd: 17 }
             },
         ],
 
-        // ---------- 蝝怨頝舐?嚗?敶梁頂嚗?----------
+        // ---------- 影狐系列（暗影系）： ----------
         shadow_fox: [
             {
                 id: 'phantom_fox',
-                name: '撟餃蔣??',
-                emoji: '??',
+                name: '幽影幻狐',
+                emoji: '🦊',
                 img: 'images/pets/phantom_fox.png',
                 condition: 'happy_high',
-                description: '敹急?摨阡?嚗?6嚗?,
+                description: '快樂度高（=6）。',
                 stats: { hp: 3, atk: 19, def: 11, spd: 18 },
-                ability: '?????'
+                ability: '幻影替身'
             },
             {
                 id: 'creep_fox',
-                name: '憌Ｗ蔣閰剔?',
-                emoji: '??儭?,
+                name: '飢影咒狐',
+                emoji: '🦊',
                 img: 'images/pets/creep_fox.png',
                 condition: 'hunger_low',
-                description: '憌賡?摨虫?嚗?0嚗?,
+                description: '飢餓度低（=0）。',
                 stats: { hp: 3, atk: 19, def: 9, spd: 19 },
-                ability: '?輻?隤?'
+                ability: '幽冥之語'
             },
             {
                 id: 'abyss_fox',
-                name: '瘛望殿敶梁?',
-                emoji: '??',
+                name: '深淵影狐',
+                emoji: '🦊',
                 img: 'images/pets/abyss_fox.png',
                 condition: 'default',
-                description: '?身',
+                description: '預設',
                 stats: { hp: 4, atk: 18, def: 10, spd: 12 },
-                ability: '???'
+                ability: '深淵之噬'
             },
         ],
 
-        // ---------- 璈頝舐?嚗??頂嚗?----------
+        // ---------- 猛火系列（獅子系）： ----------
         fist_lion: [
             {
                 id: 'mega_lion',
-                name: '撌冽?啁?',
-                emoji: '??',
+                name: '巨型悍獅',
+                emoji: '🦁',
                 img: 'images/pets/mega_lion.png',
                 condition: 'happy_low',
-                description: '敹急?摨虫?嚗?0嚗?,
+                description: '快樂度低（=0）。',
                 stats: { hp: 5, atk: 19, def: 14, spd: 7 },
-                ability: '瘥皛楊??
+                ability: '霸者重擊'
             },
             {
                 id: 'dirty_lion',
-                name: '瘙⊿擛亦?',
-                emoji: '?儭?,
+                name: '穢垢猛獅',
+                emoji: '🦁',
                 img: 'images/pets/dirty_lion.png',
                 condition: 'clean_low',
-                description: '皜?摨虫?',
+                description: '清潔度低',
                 stats: { hp: 5, atk: 18, def: 17, spd: 5 },
-                ability: '?閫?'
+                ability: '汙染咆哮'
             },
             {
                 id: 'rage_lion',
-                name: '?斗???,
-                emoji: '?',
+                name: '狂怒獅王',
+                emoji: '🦁',
                 img: 'images/pets/rage_lion.png',
                 condition: 'default',
-                description: '?身',
+                description: '預設',
                 stats: { hp: 4, atk: 19, def: 13, spd: 9 },
-                ability: '?漲?垠'
+                ability: '熾熱狂怒'
             },
         ],
 
-        // ---------- 暺??嚗??頂 ----------
+        // ---------- 黑化分支：影蜘系列 ----------
         shadow_spider: [
             {
                 id: 'doom_spider',
-                name: '??株?',
-                emoji: '?儭?,
+                name: '死劫蜘',
+                emoji: '🕷️',
                 img: 'images/pets/doom_spider.png',
                 condition: 'hunger_low',
-                description: '憌賡?摨虫? / ?嗥??脣?',
+                description: '飢餓度低 / 噩兆進化',
                 stats: { hp: 3, atk: 19, def: 12, spd: 16 },
-                ability: '?拍蝜怠'
+                ability: '死亡纏繞'
             },
             {
                 id: 'venom_spider',
-                name: '???嗉?',
-                emoji: '??',
+                name: '毒腺蛛',
+                emoji: '🕷️',
                 img: 'images/pets/venom_spider.png',
                 condition: 'clean_low',
-                description: '皜?摨虫? / 瘥??脣?',
+                description: '清潔度低 / 毒素進化',
                 stats: { hp: 3, atk: 18, def: 13, spd: 15 },
-                ability: '?砍瘥'
+                ability: '毒網禁錮'
             },
             {
                 id: 'void_spider',
-                name: '?征蝜雯??,
-                emoji: '?儭?,
+                name: '亡魂蜘',
+                emoji: '🕷️',
                 img: 'images/pets/void_spider.png',
                 condition: 'default',
-                description: '?身?脣?',
+                description: '預設黑化進化',
                 stats: { hp: 3, atk: 17, def: 15, spd: 17 },
-                ability: '?征銋雯'
+                ability: '亡魂之網'
             },
         ],
 
-        // ---------- 暺??嚗?樴頂 ----------
+        // ---------- 黑化分支：黑龜系列 ----------
         shadow_turtle: [
             {
                 id: 'bone_turtle',
-                name: '?撉券?',
-                emoji: '?',
+                name: '骸骨坦龜',
+                emoji: '🐢',
                 img: 'images/pets/bone_turtle.png',
                 condition: 'happy_low',
-                description: '敹急?摨虫? / 撉賊爸?脣?',
+                description: '快樂度低 / 坦魂進化',
                 stats: { hp: 4, atk: 15, def: 19, spd: 4 },
-                ability: '???賡爸'
+                ability: '靈魂盾牆'
             },
             {
                 id: 'hellfire_turtle',
-                name: '?撗拚?',
-                emoji: '?',
+                name: '獄火龜',
+                emoji: '🔥',
                 img: 'images/pets/hellfire_turtle.png',
                 condition: 'most_red',
-                description: '蝝憌擗菟??憭?/ ?痔?脣?',
+                description: '紅色水果進食量最多 / 炎帝進化',
                 stats: { hp: 5, atk: 18, def: 18, spd: 5 },
-                ability: '??挺'
+                ability: '怒火反彈'
             },
             {
                 id: 'mirage_turtle',
-                name: '撟賢撟駁?',
-                emoji: '?',
+                name: '幻象龜',
+                emoji: '🐢',
                 img: 'images/pets/mirage_turtle.png',
                 condition: 'default',
-                description: '?身?脣?',
+                description: '預設黑化進化',
                 stats: { hp: 4, atk: 17, def: 17, spd: 8 },
-                ability: '憌蛹?'
+                ability: '鏡像防禦'
             },
         ],
     },
 
-    // ==================== ?脣???閮剖? ====================
-    evo1Time: 1 * 24 * 60 * 60 * 1000,  // 銝?脣?????: 1憭?    evo2Time: 3 * 24 * 60 * 60 * 1000,  // 鈭??脣?????: 3憭?};
+    // ==================== 進化時間設定 ====================
+    evo1Time: 1 * 24 * 60 * 60 * 1000,  // 一階進化所需時間: 1天
+    evo2Time: 3 * 24 * 60 * 60 * 1000,  // 二階進化所需時間: 3天
+};
 
-// 憒???Node.js ?啣?銝剝?銵????箸芋蝯?if (typeof module !== 'undefined' && module.exports) {
+// 如果在 Node.js 環境中運行，則導出模組
+if (typeof module !== 'undefined' && module.exports) {
     module.exports = EVOLUTION_CONFIG;
 }
