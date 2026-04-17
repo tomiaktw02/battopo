@@ -64,7 +64,7 @@ body {
 
 #pet-name-display {
     font-family: var(--font-pixel);
-    font-size: 13px;
+    font-size: 20px;
     color: var(--accent-warm);
     text-align: center;
     margin-bottom: 10px;
@@ -85,7 +85,7 @@ body {
 }
 
 .stat-label {
-    font-size: 12px;
+    font-size: 18px;
     color: var(--text-secondary);
     min-width: 90px;
     font-weight: 700;
@@ -106,7 +106,7 @@ body {
 }
 
 .stat-desc {
-    font-size: 13px;
+    font-size: 20px;
     font-weight: 700;
     transition: all 0.4s ease;
 }
@@ -121,18 +121,13 @@ body {
     border: 1px solid rgba(255,255,255,0.08);
 }
 
-.heart.empty {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-}
-
 .heart.happy-filled {
     background: linear-gradient(135deg, var(--accent-gold), #ffaa00);
     box-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
 }
 
 #evolution-timer {
-    font-size: 10px;
+    font-size: 15px;
     color: var(--text-muted);
     text-align: center;
     margin-top: 6px;
@@ -186,7 +181,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
+    font-size: 39px;
     position: relative;
     user-select: none;
     backdrop-filter: blur(4px);
@@ -195,9 +190,9 @@ body {
 
 .sound-indicator {
     position: absolute;
-    bottom: 0px;
+    top: 0px;
     right: 2px;
-    font-size: 11px;
+    font-size: 17px;
     pointer-events: none;
     text-shadow: 0 0 4px rgba(0,0,0,0.8);
     z-index: 10;
@@ -221,7 +216,7 @@ body {
 }
 
 .action-tooltip .tooltip-desc {
-    font-size: 11px;
+    font-size: 17px;
     color: var(--text-secondary);
 }
 
@@ -231,11 +226,14 @@ body {
     background: rgba(15, 15, 26, 0.95);
     border: 1px solid var(--accent-fire);
     border-radius: var(--radius-sm);
-    padding: 8px 12px;
-    font-size: 11px;
+    padding: 14px 18px;
+    font-size: 17px;
     color: var(--text-primary);
-    white-space: nowrap;
-    z-index: 1000; /* Above everything in the container */
+    white-space: normal;
+    word-break: break-word;
+    max-width: 280px;
+    width: max-content;
+    z-index: 1000;
     pointer-events: none;
     backdrop-filter: blur(8px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -249,14 +247,14 @@ body {
 
 #global-tooltip .tooltip-name {
     font-family: var(--font-pixel);
-    font-size: 10px;
+    font-size: 15px;
     color: var(--accent-warm);
     display: block;
     margin-bottom: 4px;
 }
 
 #global-tooltip .tooltip-desc {
-    font-size: 11px;
+    font-size: 17px;
     color: var(--text-secondary);
 }
 
@@ -369,10 +367,10 @@ body {
 /* ===== Poop ===== */
 #poop-area {
     position: absolute;
-    bottom: 10px;
+    bottom: 50px;
     left: 0;
     right: 0;
-    height: 80px;
+    height: 60px;
     display: flex;
     justify-content: center;
     gap: 12px;
@@ -384,7 +382,7 @@ body {
 .poop {
     width: 36px;
     height: 36px;
-    font-size: 28px;
+    font-size: 42px;
     animation: poopAppear 0.4s ease-out;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
@@ -410,7 +408,7 @@ body {
     top: -45px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 40px;
+    font-size: 60px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 50%;
     width: 60px;
@@ -449,7 +447,7 @@ body {
     max-height: 60px;
     overflow-y: auto;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: 18px;
     line-height: 1.6;
     padding: 0 4px;
     scrollbar-width: thin;
@@ -495,7 +493,7 @@ body {
 .input-prompt {
     color: var(--accent-fire);
     font-family: var(--font-pixel);
-    font-size: 12px;
+    font-size: 18px;
 }
 
 #command-input {
@@ -505,7 +503,7 @@ body {
     border-radius: var(--radius-sm);
     padding: 10px 14px;
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 21px;
     font-family: var(--font-main);
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -521,16 +519,18 @@ body {
 }
 
 #submit-btn {
-    padding: 10px 16px;
-    background: linear-gradient(135deg, var(--accent-fire), var(--accent-warm));
+    background: var(--accent-fire);
+    color: white;
     border: none;
     border-radius: var(--radius-sm);
-    color: white;
-    font-family: var(--font-pixel);
-    font-size: 10px;
+    padding: 10px 12px;
+    font-size: 20px;
     cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 1px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.1s;
 }
 
 #submit-btn:hover {
@@ -560,52 +560,52 @@ body {
 }
 
 #feed-modal {
-    background: var(--bg-card-lighter);
-    border: 2px solid var(--accent-warm);
+    background: var(--bg-panel);
+    border: 2.5px solid var(--accent-fire);
     border-radius: var(--radius);
-    padding: 24px;
-    text-align: center;
-    max-width: 400px;
+    padding: 20px 16px;
     width: 95%;
-    box-shadow: 0 0 40px rgba(247, 147, 30, 0.2);
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    animation: modalSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 #feed-modal h2 {
     font-family: var(--font-pixel);
-    font-size: 14px;
+    font-size: 21px;
     color: var(--accent-warm);
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 #feed-modal p {
-    font-size: 13px;
+    font-size: 18px;
     color: var(--text-secondary);
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 #feed-choices {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 20px;
     justify-content: center;
-}
-
-#feed-choices .feed-choice {
-    width: calc(33.33% - 8px);
-    min-width: 100px;
+    gap: 10px;
+    margin: 0 auto 16px;
+    max-width: 380px; /* Ensures 3-over-2 wrap with 110px items */
 }
 
 .feed-choice {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    flex: 0 0 110px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    padding: 12px 6px;
+    padding: 10px 4px;
+    cursor: pointer;
+    transition: all 0.2s;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    cursor: default;
     position: relative;
 }
 
@@ -614,30 +614,27 @@ body {
 }
 
 .feed-choice-emoji {
-    font-size: 32px;
+    font-size: 48px;
 }
 
 .feed-choice-img {
     width: 48px;
     height: 48px;
+    margin-bottom: 4px;
     object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 
 .feed-choice-name {
-    font-size: 11px;
-    color: var(--text-primary);
+    font-size: 16px;
     font-weight: 700;
+    color: var(--text-primary);
 }
 
 .feed-choice-cmd {
-    font-size: 10px;
-    color: var(--accent-warm);
-    opacity: 0.8;
-    background: rgba(0,0,0,0.3);
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-top: 4px;
+    font-size: 12px;
+    color: var(--accent-info);
+    font-family: var(--font-main);
+    margin-top: 2px;
 }
 
 #feed-cancel-btn {
@@ -647,7 +644,7 @@ body {
     border-radius: var(--radius-sm);
     color: var(--text-muted);
     font-family: var(--font-main);
-    font-size: 13px;
+    font-size: 20px;
     font-weight: 700;
     cursor: default;
 }
@@ -676,13 +673,13 @@ body {
 
 
 .hof-back-label {
-    font-size: 11px;
+    font-size: 17px;
     color: var(--text-primary);
     font-weight: 700;
 }
 
 .hof-back-cmd {
-    font-size: 9px;
+    font-size: 14px;
     color: var(--accent-warm);
     opacity: 0.9;
     background: rgba(0,0,0,0.3);
@@ -719,13 +716,13 @@ body {
 
 #rps-modal h2 {
     font-family: var(--font-pixel);
-    font-size: 14px;
+    font-size: 21px;
     color: var(--accent-warm);
     margin-bottom: 12px;
 }
 
 #rps-modal p {
-    font-size: 13px;
+    font-size: 20px;
     color: var(--text-secondary);
     margin-bottom: 16px;
 }
@@ -754,17 +751,17 @@ body {
 }
 
 .rps-emoji {
-    font-size: 28px;
+    font-size: 42px;
 }
 
 .rps-label {
-    font-size: 11px;
+    font-size: 17px;
     color: var(--text-primary);
     font-weight: 700;
 }
 
 .rps-cmd {
-    font-size: 9px;
+    font-size: 14px;
     color: var(--accent-fire);
     opacity: 0.9;
     background: rgba(0,0,0,0.3);
@@ -781,7 +778,7 @@ body {
 
 #rps-result {
     font-family: var(--font-pixel);
-    font-size: 12px;
+    font-size: 18px;
     padding: 10px;
     border-radius: var(--radius-sm);
     margin-top: 8px;
@@ -835,14 +832,14 @@ body {
 }
 
 #leave-message {
-    font-size: 16px;
+    font-size: 24px;
     color: var(--text-primary);
     margin-bottom: 24px;
     line-height: 1.8;
 }
 
 #leave-message .leave-emoji {
-    font-size: 48px;
+    font-size: 72px;
     display: block;
     margin-bottom: 16px;
 }
@@ -853,7 +850,7 @@ body {
     border: none;
     border-radius: var(--radius);
     color: white;
-    font-size: 14px;
+    font-size: 21px;
     font-family: var(--font-main);
     font-weight: 700;
     cursor: pointer;
@@ -901,6 +898,7 @@ body {
     max-width: 440px;
     max-height: 90%;
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow:
         0 0 50px rgba(255, 215, 0, 0.08),
         0 8px 32px rgba(0, 0, 0, 0.5);
@@ -925,14 +923,14 @@ body {
 
 #dex-header h2 {
     font-family: var(--font-pixel);
-    font-size: 14px;
+    font-size: 21px;
     color: var(--accent-gold);
     text-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
     margin-bottom: 6px;
 }
 
 #dex-progress {
-    font-size: 11px;
+    font-size: 17px;
     color: var(--text-secondary);
     letter-spacing: 0.5px;
 }
@@ -953,7 +951,7 @@ body {
 .dex-stage-label {
     grid-column: 1 / -1;
     font-family: var(--font-pixel);
-    font-size: 9px;
+    font-size: 14px;
     color: var(--text-muted);
     padding: 8px 4px 4px;
     letter-spacing: 1px;
@@ -967,16 +965,16 @@ body {
 
 .dex-card {
     position: relative;
-    aspect-ratio: 1;
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    padding: 10px 6px;
+    min-height: 125px;
     border: 1.5px solid rgba(255, 255, 255, 0.06);
     background: rgba(255, 255, 255, 0.03);
     transition: all 0.25s ease;
-    overflow: hidden;
     cursor: default;
 }
 
@@ -1044,13 +1042,13 @@ body {
 }
 
 .dex-card-emoji {
-    font-size: 28px;
+    font-size: 42px;
     margin-bottom: 2px;
     line-height: 1;
 }
 
 .dex-card-name {
-    font-size: 8px;
+    font-size: 12px;
     color: var(--text-secondary);
     text-align: center;
     line-height: 1.2;
@@ -1065,70 +1063,14 @@ body {
     color: var(--accent-gold);
 }
 
-/* ---- Dex Tooltip ---- */
-.dex-card .dex-tooltip {
-    position: absolute;
-    bottom: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(10, 10, 20, 0.96);
-    border: 1px solid rgba(255, 215, 0, 0.25);
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-size: 10px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-    z-index: 30;
-    pointer-events: none;
-    backdrop-filter: blur(6px);
-    text-align: center;
-}
-
-.dex-card .dex-tooltip .dex-tooltip-name {
-    font-weight: 700;
-    color: var(--accent-gold);
-    display: block;
-    margin-bottom: 2px;
-    font-size: 11px;
-}
-
-.dex-card .dex-tooltip .dex-tooltip-desc {
-    color: var(--text-muted);
-    font-size: 9px;
-}
-
-.dex-card.unlocked:hover .dex-tooltip {
-    opacity: 1;
-    visibility: visible;
-}
-
 /* ---- Close Button ---- */
-#dex-close-btn {
-    display: block;
-    margin: 0 auto;
-    padding: 10px 28px;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 107, 53, 0.1));
-    border: 1.5px solid rgba(255, 215, 0, 0.2);
-    border-radius: var(--radius-sm);
-    color: var(--accent-gold);
-    font-size: 12px;
-    font-family: var(--font-main);
-    font-weight: 700;
-    cursor: default;
-    transition: none;
-    letter-spacing: 1px;
-}
-
-#dex-close-btn:hover {
-    opacity: 0.9;
-}
 
 /* ===== Utility ===== */
-.hidden {
-    display: none !important;
+.hidden { display: none !important; }
+
+.silhouette {
+    filter: brightness(0) contrast(0.5);
+    pointer-events: none;
 }
 
 /* ===== Responsive ===== */
@@ -1162,7 +1104,7 @@ body {
     box-shadow: 0 0 50px rgba(255, 215, 0, 0.15);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 #hof-header {
@@ -1174,19 +1116,78 @@ body {
 
 #hof-header h2 {
     font-family: var(--font-pixel);
-    font-size: 18px;
+    font-size: 27px;
     color: var(--accent-gold);
     margin-bottom: 10px;
 }
 
 #hof-header p {
-    font-size: 13px;
+    font-size: 20px;
     color: var(--text-muted);
 }
 
+/* ----- Dex Tabs ----- */
+#dex-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dex-tab {
+    font-size: 36px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    position: relative;
+}
+
+.dex-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.dex-tab.active {
+    background: rgba(46, 204, 113, 0.15);
+    border-color: var(--accent-green);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+}
+
+/* Dex grid properties already handled above */
+.collection-name-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.collection-name-en {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-family: var(--font-main);
+    line-height: 1.2;
+    word-break: break-word;
+    margin-top: 2px;
+    text-align: center;
+}
+
+/* Larger local name for food & pest cards */
+.collection-name-group .dex-card-name {
+    font-size: 17px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
+}
+
+
 #hof-list {
     flex: 1;
-    overflow-y: auto;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -1223,7 +1224,7 @@ body {
 
 .hof-rank {
     font-family: var(--font-pixel);
-    font-size: 16px;
+    font-size: 24px;
     color: var(--accent-gold);
     min-width: 35px;
 }
@@ -1234,13 +1235,13 @@ body {
 
 .hof-name {
     font-weight: 700;
-    font-size: 16px;
+    font-size: 24px;
     color: var(--text-primary);
     margin-bottom: 2px;
 }
 
 .hof-form {
-    font-size: 12px;
+    font-size: 18px;
     color: var(--text-secondary);
     display: flex;
     align-items: center;
@@ -1249,7 +1250,7 @@ body {
 }
 
 .hof-battle-stats {
-    font-size: 11px;
+    font-size: 17px;
     color: var(--accent-warm);
     background: rgba(247, 147, 30, 0.1);
     border: 1px solid rgba(247, 147, 30, 0.2);
@@ -1261,7 +1262,7 @@ body {
 }
 
 .hof-date {
-    font-size: 11px;
+    font-size: 17px;
     color: var(--text-muted);
     text-align: right;
     white-space: nowrap;
@@ -1275,6 +1276,7 @@ body {
     color: var(--text-primary);
     border-radius: var(--radius-sm);
     cursor: pointer;
+    font-size: 21px;
     font-family: var(--font-main);
     font-weight: 700;
     transition: all 0.2s;
@@ -1294,7 +1296,7 @@ body {
 }
 
 .tombstone-emoji {
-    font-size: 100px;
+    font-size: 150px;
     filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
     animation: funeralFloating 4s ease-in-out infinite;
     cursor: default;
@@ -1325,7 +1327,7 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: space-between;
     padding: 20px 0;
 }
 
@@ -1386,7 +1388,7 @@ body {
 
 #battle-name-tag, #opponent-name-tag, #player-name-tag {
     font-family: var(--font-pixel);
-    font-size: 10px;
+    font-size: 15px;
     color: var(--text-primary);
     margin-top: 6px;
     background: rgba(0,0,0,0.4);
@@ -1396,21 +1398,23 @@ body {
 
 #battle-msg-box {
     position: absolute;
-    bottom: 125px;
-    right: 20px;
-    width: 220px;
+    top: 205px; /* Aligns with bottom of opponent sprite */
+    left: 240px; /* Aligns with right of player sprite */
+    right: 0;
+    width: auto;
     background: rgba(26, 26, 46, 0.95);
     border: 1.5px solid var(--accent-fire);
-    padding: 12px 20px;
-    border-radius: var(--radius-sm);
+    border-right: none; /* Seamless right edge */
+    padding: 12px 18px;
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
     text-align: center;
     z-index: 100;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: -4px 4px 20px rgba(0, 0, 0, 0.5);
     pointer-events: none;
 }
 
 #battle-msg-text {
-    font-size: 13px;
+    font-size: 20px;
     color: var(--text-primary);
     line-height: 1.5;
 }
@@ -1527,7 +1531,7 @@ body {
     border: 1px solid var(--accent-green);
     border-radius: var(--radius-sm);
     padding: 8px 12px;
-    font-size: 11px;
+    font-size: 17px;
     color: var(--text-primary);
     white-space: nowrap;
     opacity: 0;
@@ -1547,14 +1551,14 @@ body {
 
 .lang-tooltip .tooltip-name {
     font-family: var(--font-pixel);
-    font-size: 10px;
+    font-size: 15px;
     color: var(--accent-green);
     display: block;
     margin-bottom: 4px;
 }
 
 .lang-tooltip .tooltip-desc {
-    font-size: 11px;
+    font-size: 17px;
     color: var(--text-secondary);
 }
 
@@ -1578,14 +1582,14 @@ body {
 }
 
 #clean-modal {
-    background: var(--bg-card-lighter);
-    border: 2px solid var(--accent-fire);
+    background: var(--bg-panel);
+    border: 2.5px solid var(--accent-fire);
     border-radius: var(--radius);
-    padding: 24px;
-    text-align: center;
+    padding: 20px 16px;
+    width: 95%;
     max-width: 380px;
-    width: 90%;
-    box-shadow: 0 0 40px rgba(255, 107, 53, 0.25);
+    text-align: center;
+    box-shadow: var(--shadow-lg);
     animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1596,9 +1600,9 @@ body {
 
 #clean-modal h2 {
     font-family: var(--font-pixel);
-    font-size: 14px;
+    font-size: 21px;
     color: var(--accent-warm);
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     letter-spacing: 1px;
 }
 
@@ -1606,13 +1610,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
 #pest-img {
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
     filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
     animation: pestFloat 3s ease-in-out infinite;
@@ -1625,7 +1629,7 @@ body {
 
 #pest-info {
     text-align: center;
-    background: rgba(0,0,0,0.2);
+    background: var(--bg-dark);
     padding: 12px;
     border-radius: var(--radius-sm);
     width: 100%;
@@ -1639,28 +1643,28 @@ body {
 }
 
 #pest-name-local {
-    font-size: 18px;
+    font-size: 24px;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 #pest-name-en {
-    font-size: 12px;
+    font-size: 16px;
     color: var(--accent-fire);
-    font-family: var(--font-pixel);
+    font-family: var(--font-main);
     text-transform: uppercase;
 }
 
 #pest-desc {
-    font-size: 11px;
+    font-size: 16px;
     color: var(--text-secondary);
     line-height: 1.5;
 }
 
 #clean-hint {
-    font-size: 11px;
+    font-size: 16px;
     color: var(--accent-gold);
-    margin-top: 10px;
+    margin-top: 12px;
     font-style: italic;
 }
 
@@ -1784,10 +1788,11 @@ body {
 
     .mobile-mode #feed-choices {
         gap: 8px;
+        max-width: 290px;
     }
 
     .mobile-mode .feed-choice {
-        min-width: 80px;
+        flex: 0 0 86px;
         padding: 8px 4px;
     }
 
@@ -1849,13 +1854,16 @@ body {
         margin-bottom: 35px;
     }
 
-    /* 戰鬥訊息框：往下移（降低 bottom 值） */
+    /* 戰鬥訊息框：上對齊對手底，左對齊我方右 */
     .mobile-mode #battle-msg-box {
-        bottom: 60px;
-        right: 10px;
-        width: 185px;
-        padding: 8px 14px;
-        font-size: 12px;
+        top: 145px;
+        left: 135px;
+        right: 0;
+        width: auto;
+        padding: 8px 12px;
+        font-size: 18px;
+        border-right: none;
+        border-radius: 6px 0 0 6px;
     }
 }
 
@@ -1889,13 +1897,13 @@ body {
 
 #rename-modal h2 {
     font-family: var(--font-pixel);
-    font-size: 14px;
+    font-size: 21px;
     color: var(--accent-warm);
     margin-bottom: 15px;
 }
 
 #rename-modal p {
-    font-size: 13px;
+    font-size: 20px;
     color: var(--text-secondary);
     margin-bottom: 20px;
 }
@@ -1907,7 +1915,7 @@ body {
     border-radius: var(--radius-sm);
     padding: 12px 16px;
     color: var(--text-primary);
-    font-size: 18px; /* Larger for better mobile typing */
+    font-size: 27px; /* Larger for better mobile typing */
     font-family: var(--font-main);
     outline: none;
     margin-bottom: 15px;

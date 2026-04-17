@@ -18,7 +18,7 @@
         <header id="game-header">
             <div id="header-top-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div id="pet-name-display" data-i18n="ui_egg_name">🥚 蛋</div>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div id="header-controls" style="display: flex; align-items: center; gap: 8px;">
                     <!-- Sound Mode Status Icon -->
                     <div id="sound-mode-btn" style="font-size: 10px; color: var(--text-secondary); cursor: help; display: flex; flex-direction: column; align-items: center; user-select: none; padding: 2px 4px; border-radius: 6px; border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;">
                         <span class="sound-icon" style="font-size: 16px;">🔊</span>
@@ -54,9 +54,7 @@
             <!-- Left: Action Buttons -->
             <aside id="action-panel">
                 <div id="action-buttons">
-                    <!-- The buttons will be dynamically rendered by JS, but we need the static structure for the new button if we want to ensure it is there or just let JS handle it.
-                    Actually, script.js renders these dynamically based on the pet stage.
-                    Wait, let me check script.js how it renders action buttons. -->
+                    <!-- Action buttons are rendered dynamically by script.js based on pet stage -->
                 </div>
             </aside>
 
@@ -108,7 +106,7 @@
             <div id="input-row">
                 <span class="input-prompt">▶</span>
                 <input type="text" id="command-input" placeholder="輸入指令 (英文)..." autocomplete="off" spellcheck="false">
-                <button id="submit-btn">ENTER</button>
+                <button id="submit-btn" style="min-width: 44px;">⏎</button>
             </div>
             <!-- Custom Mobile Keyboard (Hidden by default) -->
             <div id="mobile-keyboard" class="hidden"></div>
@@ -183,7 +181,12 @@
         <div id="dex-overlay" class="hidden">
             <div id="dex-modal">
                 <div id="dex-header">
-                    <h2 data-i18n="ui_dex_title">📖 圖鑑</h2>
+                    <h2 id="dex-title" data-i18n="ui_dex_title">📖 收集品</h2>
+                    <div id="dex-tabs">
+                        <div class="dex-tab active" data-tab="0" id="tab-bestiary">📖</div>
+                        <div class="dex-tab" data-tab="1" id="tab-food">🍱</div>
+                        <div class="dex-tab" data-tab="2" id="tab-pests">🐛</div>
+                    </div>
                     <div id="dex-progress"></div>
                 </div>
                 <div id="dex-grid"></div>

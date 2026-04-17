@@ -33,6 +33,8 @@
 
     const SAVE_KEY = 'battopo_save';
     const DEX_KEY = 'battopo_dex';
+    const FOOD_DEX_KEY = 'battopo_food_dex'; // NEW
+    const PEST_DEX_KEY = 'battopo_pest_dex'; // NEW
     const HOF_KEY = 'battopo_hof';
     const SOUND_KEY = 'battopo_sound_mode'; // 0=off, 1=partial, 2=full
     const ACCENT_KEY = 'battopo_voice_accent'; // 'us' or 'uk'
@@ -68,6 +70,8 @@
     const dexGrid        = $('dex-grid');
     const dexProgress    = $('dex-progress');
     const dexBackBtn     = $('dex-back-btn');
+    const dexTabs        = $('dex-tabs');
+    const dexTitle       = $('dex-title'); // Added ID in index.html for title updates
     const feedOverlay     = $('feed-overlay');
     const feedChoices     = $('feed-choices');
     const feedCancelBtn   = $('feed-cancel-btn');
@@ -282,8 +286,27 @@
         // Bind tooltip hover events once (not re-bound on every renderStatusIcons call)
         initStatusIconTooltips();
         
-        // Sound and Accent icons are now static (status only)
-        // No click listeners for sound-mode-btn or accent-mode-btn
+        // Global tap-outside: dismiss tooltips on mobile ONLY when tapping completely outside
+        // (excludes interactive buttons, input areas, keyboard, and the tooltip itself)
+        document.addEventListener('touchstart', (e) => {
+            if (!isTouchCapable) return;
+            const safeSelectors = [
+                '.action-btn',
+                '.dex-tab',
+                '#sound-mode-btn',
+                '#accent-mode-btn',
+                '#lang-btn-display',
+                '#input-area',         // entire bottom input zone
+                '#command-input',      // command text input
+                '#mobile-keyboard',    // on-screen keyboard
+                '#global-tooltip',     // the tooltip itself
+                '.action-tooltip',     // the action tooltip panel
+            ].join(', ');
+            if (!e.target.closest(safeSelectors)) {
+                hideActionTooltip();
+                hideGlobalTooltip();
+            }
+        }, { passive: true });
     });
 
     // ---- Sound Mode (0=off, 1=partial, 2=full) ----
@@ -340,18 +363,34 @@
         const accentBtn = document.getElementById('accent-mode-btn');
         const langBtn = document.getElementById('lang-btn-display');
 
-        if (soundBtn) {
-            soundBtn.onmouseenter = () => showActionTooltip(soundBtn, t('ui_sound_title'), t('ui_sound_tooltip'));
-            soundBtn.onmouseleave = hideActionTooltip;
-        }
-        if (accentBtn) {
-            accentBtn.onmouseenter = () => showActionTooltip(accentBtn, t('ui_accent_title'), t('ui_accent_tooltip'));
-            accentBtn.onmouseleave = hideActionTooltip;
-        }
-        if (langBtn) {
-            langBtn.onmouseenter = () => showActionTooltip(langBtn, t('ui_lang_title'), t('ui_lang_tooltip'));
-            langBtn.onmouseleave = hideActionTooltip;
-        }
+        const bindTooltip = (el, title, desc) => {
+            if (!el) return;
+            el.onclick = () => {
+                if (isTouchCapable) {
+                    showActionTooltip(el, title, desc);
+                } else {
+                    hideActionTooltip();
+                }
+            };
+            el.onmouseenter = () => {
+                if (isTouchCapable) return;
+                showActionTooltip(el, title, desc);
+            };
+            el.onmouseleave = () => {
+                if (isTouchCapable) return;
+                hideActionTooltip();
+            };
+        };
+
+        // Re-bind whenever called (lang/accent may update text)
+        const rebind = () => {
+            bindTooltip(soundBtn, t('ui_sound_title'), t('ui_sound_tooltip'));
+            bindTooltip(accentBtn, t('ui_accent_title'), t('ui_accent_tooltip'));
+            bindTooltip(langBtn, t('ui_lang_title'), t('ui_lang_tooltip'));
+        };
+        rebind();
+        // Expose so renderStatusIcons can re-call if language changes
+        initStatusIconTooltips._rebind = rebind;
     }
 
     // ---- Speech Synthesis ----
@@ -483,6 +522,7 @@
             isCleaningMode: false,   // NEW: tracking if cleaning mini-game is active
             currentPest: null,       // NEW: current pest to identify
             accent: 'us',            // NEW: voice accent selection
+            collectionTab: 0,        // NEW: 0=bestiary, 1=food, 2=pests
         };
     }
 
@@ -576,26 +616,36 @@
         
         // Use getFormInfo to ensure everything is resolved and translated
         // Babies
-        forms.push({ ...getFormInfo(EVOLUTION_CONFIG.baby.id), stage: 'baby' });
+        const babyInfo = getFormInfo(EVOLUTION_CONFIG.baby.id);
+        if (babyInfo) forms.push({ ...babyInfo, stage: 'baby' });
+        
         if (EVOLUTION_CONFIG.baby_black) {
-            forms.push({ ...getFormInfo(EVOLUTION_CONFIG.baby_black.id), stage: 'baby' });
+            const babyBlackInfo = getFormInfo(EVOLUTION_CONFIG.baby_black.id);
+            if (babyBlackInfo) forms.push({ ...babyBlackInfo, stage: 'baby' });
         }
 
         // Stage 1 (White)
-        for (const f of EVOLUTION_CONFIG.stage1) {
-            forms.push({ ...getFormInfo(f.id), stage: 'stage1' });
+        if (EVOLUTION_CONFIG.stage1) {
+            for (const f of EVOLUTION_CONFIG.stage1) {
+                const info = getFormInfo(f.id);
+                if (info) forms.push({ ...info, stage: 'stage1' });
+            }
         }
         // Stage 1 (Black)
         if (EVOLUTION_CONFIG.stage1_black) {
             for (const f of EVOLUTION_CONFIG.stage1_black) {
-                forms.push({ ...getFormInfo(f.id), stage: 'stage1' });
+                const info = getFormInfo(f.id);
+                if (info) forms.push({ ...info, stage: 'stage1' });
             }
         }
 
         // Stage 2
-        for (const key in EVOLUTION_CONFIG.stage2) {
-            for (const f of EVOLUTION_CONFIG.stage2[key]) {
-                forms.push({ ...getFormInfo(f.id), stage: 'stage2', parentId: key });
+        if (EVOLUTION_CONFIG.stage2) {
+            for (const key in EVOLUTION_CONFIG.stage2) {
+                for (const f of EVOLUTION_CONFIG.stage2[key]) {
+                    const info = getFormInfo(f.id);
+                    if (info) forms.push({ ...info, stage: 'stage2', parentId: key });
+                }
             }
         }
         return forms;
@@ -631,19 +681,110 @@
         addMsg(t('msg_dex_new') + `${formInfo.emoji} ${formInfo.name}！`, 'success');
     }
 
+    // ---- Food Dex System ----
+    function loadFoodDex() {
+        const raw = localStorage.getItem(FOOD_DEX_KEY);
+        if (raw) {
+            try { return JSON.parse(raw); } catch { return {}; }
+        }
+        return {};
+    }
+
+    function saveFoodDex(dex) {
+        localStorage.setItem(FOOD_DEX_KEY, JSON.stringify(dex));
+    }
+
+    function registerFoodToDex(foodId) {
+        if (!foodId) return;
+        const dex = loadFoodDex();
+        if (dex[foodId]) return;
+        dex[foodId] = { id: foodId, unlockedAt: Date.now() };
+        saveFoodDex(dex);
+        // We don't necessarily need a msg here as it might be too spammy,
+        // but the user might want one. The plan didn't specify.
+    }
+
+    // ---- Pest Dex System ----
+    function loadPestDex() {
+        const raw = localStorage.getItem(PEST_DEX_KEY);
+        if (raw) {
+            try { return JSON.parse(raw); } catch { return {}; }
+        }
+        return {};
+    }
+
+    function savePestDex(dex) {
+        localStorage.setItem(PEST_DEX_KEY, JSON.stringify(dex));
+    }
+
+    function registerPestToDex(pestId) {
+        if (!pestId) return;
+        const dex = loadPestDex();
+        if (dex[pestId]) return;
+        dex[pestId] = { id: pestId, unlockedAt: Date.now() };
+        savePestDex(dex);
+    }
+
     function openDex() {
+        openCollection(0);
+    }
+
+    function openCollection(tabIndex = 0) {
+        state.collectionTab = tabIndex;
+        state.isDexMode = true;
+        dexOverlay.classList.remove('hidden');
+
+        // Tab speak commands: clicking a tab reads the command aloud (does NOT switch tabs)
+        const tabs = dexTabs.querySelectorAll('.dex-tab');
+        const tabCmds = ['bestiary', 'foods', 'bugs'];
+        const tabLabels = ['BESTIARY', 'FOODS', 'BUGS'];
+        const tabDescKeys = ['ui_tab_bestiary_desc', 'ui_tab_food_desc', 'ui_tab_bugs_desc'];
+
+        tabs.forEach((tab, index) => {
+            tab.classList.toggle('active', index === tabIndex);
+
+            const label = tabLabels[index];
+            const desc = t(tabDescKeys[index]);
+
+            // Tooltip: touch = show on click; PC = show on hover
+            tab.onclick = () => {
+                speakCommand(tabCmds[index], 'other');
+                if (isTouchCapable) {
+                    showActionTooltip(tab, label, desc);
+                } else {
+                    hideActionTooltip();
+                }
+            };
+            tab.onmouseenter = () => {
+                if (isTouchCapable) return;
+                showActionTooltip(tab, label, desc);
+            };
+            tab.onmouseleave = () => {
+                if (isTouchCapable) return;
+                hideActionTooltip();
+            };
+
+            // Sound indicator on each tab button
+            injectSoundIndicator(tab, 'other');
+        });
+
+        if (tabIndex === 0) renderPetCollection();
+        else if (tabIndex === 1) renderFoodCollection();
+        else if (tabIndex === 2) renderPestCollection();
+    }
+
+    function renderPetCollection() {
         const dex = loadDex();
         const allForms = getAllPetForms();
         const total = allForms.length;
         const unlocked = allForms.filter(f => dex[f.id]).length;
 
-        // Progress
-        dexProgress.innerHTML = `${t('ui_dex_progress')}<span class="dex-count">${unlocked}</span> / <span class="dex-count">${total}</span>`;
+        let progressHtml = t('ui_collection_progress');
+        progressHtml = progressHtml.replace('{0}', `<span class="dex-count">${unlocked}</span>`);
+        progressHtml = progressHtml.replace('{1}', `<span class="dex-count">${total}</span>`);
+        dexProgress.innerHTML = progressHtml;
 
-        // Build grid
         dexGrid.innerHTML = '';
-
-        // Group by stage
         const stages = [
             { key: 'baby', label: t('ui_stage_baby'), cssClass: 'stage-baby' },
             { key: 'stage1', label: t('ui_stage_1'), cssClass: 'stage-1' },
@@ -654,7 +795,6 @@
             const stageForms = allForms.filter(f => f.stage === stageInfo.key);
             if (stageForms.length === 0) continue;
 
-            // Stage label header
             const label = document.createElement('div');
             label.className = `dex-stage-label ${stageInfo.cssClass}`;
             label.textContent = stageInfo.label;
@@ -665,45 +805,111 @@
                 const card = document.createElement('div');
                 card.className = `dex-card ${isUnlocked ? 'unlocked' : 'locked'}`;
 
-                // Use image if available, otherwise emoji
                 if (form.img) {
                     card.innerHTML = `
-                        <img class="dex-card-img" src="${form.img}" alt="${form.name}">
+                        <img class="dex-card-img ${isUnlocked ? '' : 'silhouette'}" src="${form.img}" alt="${form.name}">
                         <span class="dex-card-name">${isUnlocked ? form.name : '???'}</span>
-                        ${isUnlocked ? `<div class="dex-tooltip">
-                            <span class="dex-tooltip-name">${form.emoji} ${form.name}</span>
-                            <span class="dex-tooltip-desc">${form.description || ''}</span>
-                            ${form.ability ? `
-                                <div class="dex-tooltip-ability">
-                                    <span class="dex-ability-label">${t('ui_trait')} ${form.ability.name}</span>
-                                    <span class="dex-ability-effect">${form.ability.description}</span>
-                                </div>
-                            ` : ''}
-                        </div>` : ''}
                     `;
                 } else {
                     card.innerHTML = `
-                        <span class="dex-card-emoji">${form.emoji}</span>
+                        <span class="dex-card-emoji">${isUnlocked ? form.emoji : '❓'}</span>
                         <span class="dex-card-name">${isUnlocked ? form.name : '???'}</span>
-                        ${isUnlocked ? `<div class="dex-tooltip">
-                            <span class="dex-tooltip-name">${form.emoji} ${form.name}</span>
-                            <span class="dex-tooltip-desc">${form.description || ''}</span>
-                            ${form.ability ? `
-                                <div class="dex-tooltip-ability">
-                                    <span class="dex-ability-label">${t('ui_trait')} ${form.ability.name}</span>
-                                    <span class="dex-ability-effect">${form.ability.description}</span>
-                                </div>
-                            ` : ''}
-                        </div>` : ''}
                     `;
                 }
 
+                if (isUnlocked) {
+                    card.onmouseenter = () => showActionTooltip(card, `${form.emoji} ${form.name}`, form.description || '');
+                    card.onmouseleave = () => hideActionTooltip();
+                }
                 dexGrid.appendChild(card);
             }
         }
+    }
 
-        dexOverlay.classList.remove('hidden');
-        state.isDexMode = true;
+    function renderFoodCollection() {
+        const foodDex = loadFoodDex();
+        const categories = ['red', 'orange', 'light', 'dark', 'green'];
+        let total = 0;
+        let unlocked = 0;
+        
+        dexGrid.innerHTML = '';
+
+        categories.forEach(cat => {
+            const foods = FOOD_DATA[cat];
+            total += foods.length;
+
+            const label = document.createElement('div');
+            label.className = `dex-stage-label`;
+            label.textContent = t('food_cat_' + cat);
+            dexGrid.appendChild(label);
+
+            foods.forEach(food => {
+                const isDiscovered = !!foodDex[food.id];
+                if (isDiscovered) unlocked++;
+
+                const card = document.createElement('div');
+                card.className = `dex-card ${isDiscovered ? 'unlocked' : 'locked'}`;
+                
+                // Get English name based on accent
+                const accent = getVoiceAccent();
+                let enName = tEn('food_' + food.id);
+                if (accent === 'uk' && LANGUAGES['en'] && LANGUAGES['en']['food_' + food.id + '_uk']) {
+                    enName = LANGUAGES['en']['food_' + food.id + '_uk'];
+                }
+
+                card.innerHTML = `
+                    <img class="dex-card-img ${isDiscovered ? '' : 'silhouette'}" src="${food.img}" alt="${food.id}">
+                    <div class="collection-name-group">
+                        <span class="dex-card-name">${isDiscovered ? t('food_' + food.id) : '???'}</span>
+                        ${isDiscovered ? `<span class="collection-name-en">${enName}</span>` : ''}
+                    </div>
+                `;
+                
+                if (isDiscovered) {
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => speakCommand(enName, 'feed');
+                    injectSoundIndicator(card, 'feed');
+                }
+                
+                dexGrid.appendChild(card);
+            });
+        });
+
+        dexProgress.innerHTML = `${t('ui_collection_progress').replace('{0}', `<span class="dex-count">${unlocked}</span>`).replace('{1}', `<span class="dex-count">${total}</span>`)}`;
+    }
+
+    function renderPestCollection() {
+        const pestDex = loadPestDex();
+        const allPests = PEST_CONFIG;
+        const total = allPests.length;
+        const unlocked = allPests.filter(p => pestDex[p.id]).length;
+
+        dexProgress.innerHTML = `${t('ui_collection_progress').replace('{0}', `<span class="dex-count">${unlocked}</span>`).replace('{1}', `<span class="dex-count">${total}</span>`)}`;
+
+        dexGrid.innerHTML = '';
+        allPests.forEach(pest => {
+            const isDiscovered = !!pestDex[pest.id];
+            const card = document.createElement('div');
+            card.className = `dex-card ${isDiscovered ? 'unlocked' : 'locked'}`;
+
+            card.innerHTML = `
+                <img class="dex-card-img ${isDiscovered ? '' : 'silhouette'}" src="${pest.img}" alt="${pest.id}">
+                <div class="collection-name-group">
+                    <span class="dex-card-name">${isDiscovered ? pest.names[currentLang] || pest.names['en'] : '???'}</span>
+                    ${isDiscovered ? `<span class="collection-name-en">${pest.names['en']}</span>` : ''}
+                </div>
+            `;
+
+            if (isDiscovered) {
+                card.onmouseenter = () => showActionTooltip(card, '', pest.descriptions[currentLang] || pest.descriptions['en']);
+                card.onmouseleave = () => hideActionTooltip();
+                card.style.cursor = 'pointer';
+                card.onclick = () => speakCommand(pest.names['en'], 'pest');
+                injectSoundIndicator(card, 'pest');
+            }
+
+            dexGrid.appendChild(card);
+        });
     }
 
     function closeDex() {
@@ -844,7 +1050,9 @@
         if (state.battleDebug === undefined) state.battleDebug = false;
         if (state.wins === undefined) state.wins = 0;
         if (state.totalBattles === undefined) state.totalBattles = 0;
-        if (state.accent === undefined) state.accent = 'us';
+        if (!state.currentPest) state.currentPest = null;
+        if (!state.accent) state.accent = 'us';
+        if (state.collectionTab === undefined) state.collectionTab = 0;
         
         // If stats are missing, try to initialize them
         if (!state.stats && state.currentFormId) {
@@ -1201,8 +1409,9 @@
         if (hof.length === 0) {
             hofList.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:40px;">${t('msg_hof_empty')}</div>`;
         } else {
+            const hofLocale = currentLang === 'zh-TW' ? 'zh-TW' : (currentLang === 'ja' ? 'ja-JP' : 'en-US');
             hof.forEach((entry, idx) => {
-                const date = new Date(entry.diedAt).toLocaleString(currentLang === 'zh-TW' ? 'zh-TW' : (currentLang === 'ja' ? 'ja-JP' : 'en-US'), {
+                const date = new Date(entry.diedAt).toLocaleString(hofLocale, {
                     year: 'numeric', month: '2-digit', day: '2-digit',
                     hour: '2-digit', minute: '2-digit'
                 });
@@ -1355,7 +1564,7 @@
 
         const systemActions = [
             { id: 'hof',  emoji: '🏆', label: 'HOF',  desc: t('ui_hof_desc'), speak: 'hall of fame' },
-            { id: 'bestiary', emoji: '📖', label: 'BESTIARY', desc: t('ui_dex_desc') },
+            { id: 'collection', emoji: '📖', label: 'COLLECTION', desc: t('ui_dex_desc'), speak: 'collection' },
         ];
 
         if (state.left || state.dead) {
@@ -1424,29 +1633,83 @@
         if (!globalTooltip) return;
         
         globalTooltip.innerHTML = `
-            <span class="tooltip-name">${name}</span>
+            ${name ? `<span class="tooltip-name">${name}</span>` : ''}
             <span class="tooltip-desc">${desc}</span>
         `;
         
         const rect = target.getBoundingClientRect();
-        const containerRect = $('game-container').getBoundingClientRect();
+        const container = $('game-container');
+        const containerRect = container.getBoundingClientRect();
         
-        const top = (rect.top - containerRect.top) + (rect.height / 2);
+        // Detect if target is in the header controls area
+        const isHeader = !!target.closest('#header-controls');
         
-        // Smart positioning: if element is in the right half of the container, show tooltip on the left
-        const isRightSide = (rect.left - containerRect.left) > (containerRect.width / 2);
-        
-        if (isRightSide) {
-            const left = (rect.left - containerRect.left) - 8;
+        if (isHeader) {
+            // "Below" positioning mode for top header icons
+            // Added more offset (12px) to ensure no overlap
+            let top = (rect.bottom - containerRect.top) + 12;
+            let left = (rect.left - containerRect.left) + (rect.width / 2);
+            
+            globalTooltip.style.top = `${top}px`;
             globalTooltip.style.left = `${left}px`;
-            globalTooltip.style.transform = `translateY(-50%) translateX(-100%)`;
+            // Force reset of translateY just in case CSS has it
+            globalTooltip.style.transform = `translateX(-50%) translateY(0)`;
+            
+            // Boundary checks for the "below" mode
+            requestAnimationFrame(() => {
+                const ttRect = globalTooltip.getBoundingClientRect();
+                let adjustedLeft = left;
+                
+                // Adjust if overflowing left edge
+                if (ttRect.left < containerRect.left) {
+                    adjustedLeft += (containerRect.left - ttRect.left) + 8;
+                }
+                // Adjust if overflowing right edge
+                else if (ttRect.right > containerRect.right) {
+                    adjustedLeft -= (ttRect.right - containerRect.right) + 8;
+                }
+                
+                globalTooltip.style.left = `${adjustedLeft}px`;
+            });
+
         } else {
-            const left = (rect.right - containerRect.left) + 8;
-            globalTooltip.style.left = `${left}px`;
-            globalTooltip.style.transform = `translateY(-50%)`;
+            // Side positioning mode for sidebar action panel buttons
+            let top = (rect.top - containerRect.top) + (rect.height / 2);
+            const isRightSideOfScreen = (rect.left - containerRect.left) > (containerRect.width / 2);
+            
+            if (isRightSideOfScreen) {
+                let leftPos = (rect.left - containerRect.left) - 8;
+                globalTooltip.style.left = `${leftPos}px`;
+                globalTooltip.style.transform = `translateY(-50%) translateX(-100%)`;
+            } else {
+                let leftPos = (rect.right - containerRect.left) + 8;
+                globalTooltip.style.left = `${leftPos}px`;
+                globalTooltip.style.transform = `translateY(-50%)`;
+            }
+            
+            globalTooltip.style.top = `${top}px`;
+            
+            requestAnimationFrame(() => {
+                const ttRect = globalTooltip.getBoundingClientRect();
+                let adjustedTop = top;
+                if (ttRect.top < containerRect.top) {
+                    adjustedTop += (containerRect.top - ttRect.top) + 8;
+                } else if (ttRect.bottom > containerRect.bottom) {
+                    adjustedTop -= (ttRect.bottom - containerRect.bottom) + 8;
+                }
+                
+                // Horizontal boundary check for side mode
+                if (ttRect.left < containerRect.left) {
+                    const overflow = containerRect.left - ttRect.left;
+                    globalTooltip.style.left = `${parseFloat(globalTooltip.style.left) + overflow + 8}px`;
+                } else if (ttRect.right > containerRect.right) {
+                    const overflow = ttRect.right - containerRect.right;
+                    globalTooltip.style.left = `${parseFloat(globalTooltip.style.left) - overflow - 8}px`;
+                }
+                globalTooltip.style.top = `${adjustedTop}px`;
+            });
         }
         
-        globalTooltip.style.top = `${top}px`;
         globalTooltip.classList.remove('hidden');
     }
 
@@ -1454,6 +1717,25 @@
         if (globalTooltip) {
             globalTooltip.classList.add('hidden');
         }
+    }
+
+    // Generic Tooltip Helpers
+    function showGlobalTooltip(text, event) {
+        if (!globalTooltip) return;
+        globalTooltip.innerHTML = `<span class="tooltip-desc">${text}</span>`;
+        
+        const containerRect = $('game-container').getBoundingClientRect();
+        const mouseX = event.clientX - containerRect.left;
+        const mouseY = event.clientY - containerRect.top;
+        
+        globalTooltip.style.left = `${mouseX}px`;
+        globalTooltip.style.top = `${mouseY - 10}px`;
+        globalTooltip.style.transform = `translate(-50%, -100%)`;
+        globalTooltip.classList.remove('hidden');
+    }
+
+    function hideGlobalTooltip() {
+        hideActionTooltip();
     }
 
     function renderEvoTimer() {
@@ -1547,7 +1829,10 @@
         if (!cmd) return;
 
         // System commands always available
-        if (cmd === 'bestiary') { speakCommand('bestiary', 'other'); openDex(); return; }
+        if (cmd === 'collection') { speakCommand('collection', 'other'); openCollection(0); return; }
+        if (cmd === 'bestiary') { speakCommand('bestiary', 'other'); openCollection(0); return; }
+        if (cmd === 'foods') { speakCommand('foods', 'other'); openCollection(1); return; }
+        if (cmd === 'bugs') { speakCommand('bugs', 'other'); openCollection(2); return; }
         if (cmd === 'hof') { speakCommand('hall of fame', 'other'); openHof(); return; }
         if (cmd === 'language') { speakCommand('language', 'other'); openLang(); return; }
 
@@ -1564,12 +1849,12 @@
             save();
             return;
         }
-        if (cmd === 'egg') { 
+        if (cmd === 'restart') { 
             if (state.left || state.dead) {
-                speakCommand('egg', 'other');
+                speakCommand('restart', 'other');
                 restart();
             } else {
-                addMsg(t('msg_egg_exists'), 'warning');
+                addMsg(t('msg_cmd_unknown'), 'warning');
             }
             return; 
         }
@@ -1962,6 +2247,7 @@
         state.feedOptions = null; // Reset options after feeding
         save();
         renderStats();
+        registerFoodToDex(food.id);
     }
 
     function doRename() {
@@ -2077,7 +2363,11 @@
             addMsg(t('msg_clean_success', getStatDesc('poop', state.poopCount).text), 'success');
             showEmotion('🧹');
             
+            // Register to Pest Dex
+            registerPestToDex(state.currentPest.id);
+
             state.currentPest = null;
+
             closeClean();
             save();
             renderAll();
@@ -2151,7 +2441,7 @@
             addMsg(t('msg_rps_invalid'), 'error');
             return;
         }
-        speakCommand(cmd, 'other');
+        speakCommand(cmd, 'rps');
 
         const playerChoice = cmd;
 
@@ -2258,8 +2548,6 @@
             save();
             renderStats();
         }
-
-        // 準備戰鬥數據
         const pInfo = getFormInfo(state.currentFormId);
         if (!pInfo) {
             addMsg("❌ Error: Pet info not found. Please try hatching/evolving again.", 'error');
@@ -2673,8 +2961,6 @@
         cmdInput.value = '';
         handleCommand(val);
     });
-
-
 
     // ---- Modal Button Listeners (Audio-Only) ----
     if (dexBackBtn) dexBackBtn.onclick = () => speakCommand('back', 'other');
