@@ -407,20 +407,23 @@ body {
 /* ===== Emotion Bubble ===== */
 #emotion-bubble {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 40px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 50%;
-    width: 56px;
-    height: 56px;
+    width: 60px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255,255,255,0.15);
-    animation: emotionPop 0.3s ease-out;
-    z-index: 70;
+    backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    animation: emotionPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1000; /* Ensure it is above everything */
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 #emotion-bubble.hidden {
@@ -428,9 +431,9 @@ body {
 }
 
 @keyframes emotionPop {
-    0% { transform: scale(0); }
-    60% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+    0% { transform: translateX(-50%) scale(0) rotate(-15deg); opacity: 0; }
+    70% { transform: translateX(-50%) scale(1.2) rotate(5deg); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
 }
 
 /* ===== Input Area ===== */
@@ -1352,6 +1355,11 @@ body {
     filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
 }
 
+#opponent-sprite {
+    transform: scaleX(-1);
+}
+
+
 .battle-hp-bar-wrapper {
     width: 150px;
     height: 8px;
@@ -1417,16 +1425,23 @@ body {
 
 .projectile {
     position: absolute;
-    font-size: 32px;
+    width: 40px;
+    height: 40px;
     z-index: 46;
     transition: none;
 }
 
+.projectile img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 @keyframes projectile-fly {
-    0% { transform: translate(var(--tx-start), var(--ty-start)) scale(0.6); opacity: 0; }
+    0% { transform: translate(var(--tx-start), var(--ty-start)) scale(0.6) rotate(var(--p-rot)); opacity: 0; }
     15% { opacity: 1; }
     85% { opacity: 1; }
-    100% { transform: translate(var(--tx-end), var(--ty-end)) scale(1.2); opacity: 0; }
+    100% { transform: translate(var(--tx-end), var(--ty-end)) scale(1.2) rotate(var(--p-rot)); opacity: 0; }
 }
 
 .animate-projectile {
@@ -1442,19 +1457,21 @@ body {
 }
 
 @keyframes projectile-miss {
-    0% { transform: translate(var(--tx-start), var(--ty-start)) scale(0.6); opacity: 0; }
+    0% { transform: translate(var(--tx-start), var(--ty-start)) scale(0.6) rotate(var(--p-rot)); opacity: 0; }
     15% { opacity: 1; }
     85% { opacity: 1; }
-    100% { transform: translate(var(--tx-miss), var(--ty-miss)) scale(1.2); opacity: 0; }
+    100% { transform: translate(var(--tx-miss), var(--ty-miss)) scale(1.2) rotate(var(--p-rot)); opacity: 0; }
 }
 
 @keyframes projectile-loop {
-    0% { transform: translate(var(--tx-start), var(--ty-start)) scale(0.6); opacity: 0; }
+    0% { transform: translate(var(--tx-start), var(--ty-start)) scale(0.6) rotate(var(--p-rot)); opacity: 0; }
     10% { opacity: 1; }
-    50% { transform: translate(var(--tx-mid), var(--ty-mid)) scale(1.1); }
+    49% { transform: translate(var(--tx-mid), var(--ty-mid)) scale(1.1) rotate(var(--p-rot)); }
+    50% { transform: translate(var(--tx-mid), var(--ty-mid)) scale(1.1) rotate(var(--p-rot-back)); }
     90% { opacity: 1; }
-    100% { transform: translate(var(--tx-start), var(--ty-start)) scale(1.2); opacity: 0; }
+    100% { transform: translate(var(--tx-start), var(--ty-start)) scale(1.2) rotate(var(--p-rot-back)); opacity: 0; }
 }
+
 
 /* Damage Flash */
 @keyframes damage-flash {

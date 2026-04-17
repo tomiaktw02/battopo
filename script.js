@@ -5,7 +5,7 @@
 (() => {
     'use strict';
 
-    const IS_DEBUG = true; // [VERSION_FLAG] 控制偵錯指令是否可用
+    const IS_DEBUG = false; // [VERSION_FLAG] 控制偵錯指令是否可用
 
     // Debug helper
     window.onerror = function(msg, url, lineNo, columnNo, error) {
@@ -37,7 +37,7 @@
     const SOUND_KEY = 'battopo_sound_mode'; // 0=off, 1=partial, 2=full
     const ACCENT_KEY = 'battopo_voice_accent'; // 'us' or 'uk'
 
-    const LIFESPAN_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
+    const LIFESPAN_MS = 4 * 24 * 60 * 60 * 1000; // 4 days (total 7 days from hatch)
 
     // ---- Evolution stage constants ----
     const STAGE_EGG = 0;
@@ -279,6 +279,8 @@
         // Initialize status icons (sound & accent)
         renderStatusIcons();
         initStaticSoundIndicators();
+        // Bind tooltip hover events once (not re-bound on every renderStatusIcons call)
+        initStatusIconTooltips();
         
         // Sound and Accent icons are now static (status only)
         // No click listeners for sound-mode-btn or accent-mode-btn
@@ -328,9 +330,6 @@
             accentBtn.querySelector('.accent-label').textContent = accent.toUpperCase();
             accentBtn.dataset.accent = accent;
         }
-        
-        // Update tooltips for these status icons
-        initStatusIconTooltips();
         
         // Update all mini-indicators on the screen
         updateAllSoundIndicators();
@@ -435,6 +434,7 @@
                          window.matchMedia("(pointer: coarse)").matches;
     let state = null;
     let cachedFormInfo = null; // Performance optimization: cache for current species info
+    let _formLookupMap = null; // O(1) form lookup map, built lazily from EVOLUTION_CONFIG
 
     function updateFormCache() {
         if (!state || !state.currentFormId) {
@@ -486,35 +486,28 @@
         };
     }
 
+    // ---- Helper: Build O(1) form lookup map from EVOLUTION_CONFIG (called lazily) ----
+    function buildFormLookup() {
+        _formLookupMap = new Map();
+        const add = (f) => { if (f) _formLookupMap.set(f.id, f); };
+        add(EVOLUTION_CONFIG.baby);
+        if (EVOLUTION_CONFIG.baby_black) add(EVOLUTION_CONFIG.baby_black);
+        for (const f of EVOLUTION_CONFIG.stage1) add(f);
+        if (EVOLUTION_CONFIG.stage1_black) {
+            for (const f of EVOLUTION_CONFIG.stage1_black) add(f);
+        }
+        for (const key in EVOLUTION_CONFIG.stage2) {
+            for (const f of EVOLUTION_CONFIG.stage2[key]) add(f);
+        }
+    }
+
     // ---- Helper: Get form info from EVOLUTION_CONFIG ----
     function getFormInfo(formId) {
         if (!formId) return null;
-        let originalForm = null;
-        // Check baby
-        if (EVOLUTION_CONFIG.baby.id === formId) originalForm = EVOLUTION_CONFIG.baby;
-        // Check baby black
-        else if (EVOLUTION_CONFIG.baby_black && EVOLUTION_CONFIG.baby_black.id === formId) originalForm = EVOLUTION_CONFIG.baby_black;
-        // Check stage1
-        else {
-            for (const f of EVOLUTION_CONFIG.stage1) {
-                if (f.id === formId) { originalForm = f; break; }
-            }
-            if (!originalForm && EVOLUTION_CONFIG.stage1_black) {
-                for (const f of EVOLUTION_CONFIG.stage1_black) {
-                    if (f.id === formId) { originalForm = f; break; }
-                }
-            }
-            // Check stage2
-            if (!originalForm) {
-                for (const key in EVOLUTION_CONFIG.stage2) {
-                    for (const f of EVOLUTION_CONFIG.stage2[key]) {
-                        if (f.id === formId) { originalForm = f; break; }
-                    }
-                    if (originalForm) break;
-                }
-            }
-        }
+        // Lazy-build the lookup map on first access (O(1) thereafter)
+        if (!_formLookupMap) buildFormLookup();
 
+        const originalForm = _formLookupMap.get(formId);
         if (!originalForm) return null;
 
         // Clone to avoid mutating original config
@@ -728,19 +721,23 @@
             return;
         }
 
-        // Randomly pick one food from each category
-        const categories = ['red', 'orange', 'light', 'dark', 'green'];
-        const selection = [];
-        categories.forEach(cat => {
-            const pool = FOOD_DATA[cat];
-            if (pool && pool.length > 0) {
-                const pick = pool[Math.floor(Math.random() * pool.length)];
-                selection.push(pick);
-            }
-        });
+        // Randomly pick one food from each category, but persistent if already picked
+        if (!state.feedOptions || !Array.isArray(state.feedOptions) || state.feedOptions.length === 0) {
+            const categories = ['red', 'orange', 'light', 'dark', 'green'];
+            const selection = [];
+            categories.forEach(cat => {
+                const pool = FOOD_DATA[cat];
+                if (pool && pool.length > 0) {
+                    const pick = pool[Math.floor(Math.random() * pool.length)];
+                    selection.push(pick);
+                }
+            });
 
-        state.feedOptions = selection;
-        save();
+            state.feedOptions = selection;
+            save();
+        }
+
+        const selection = state.feedOptions;
 
         feedChoices.innerHTML = '';
         selection.forEach(food => {
@@ -756,7 +753,7 @@
             btn.innerHTML = `
                 ${displayHTML}
                 <span class="feed-choice-name">${localizedTitle}</span>
-                <span class="feed-choice-cmd">${englishTitle.toLowerCase().replace(/\s+/g, '')}</span>
+                <span class="feed-choice-cmd">${englishTitle.toLowerCase()}</span>
             `;
             injectSoundIndicator(btn, 'feed');
             btn.onclick = () => speakCommand(englishTitle, 'feed');
@@ -1273,26 +1270,34 @@
 
     function renderStats() {
         if (state.stage === STAGE_EGG) {
-            hungerBar.innerHTML = '';
-            happyBar.innerHTML = '';
             statsBar.style.display = 'none';
             return;
         }
         statsBar.style.display = '';
 
-        // Hunger
-        let hungerHTML = '';
-        for (let i = 0; i < MAX_HUNGER; i++) {
-            hungerHTML += `<div class="heart ${i < state.hunger ? 'filled' : 'empty'}"></div>`;
+        // Lazy-init pre-built heart nodes to avoid innerHTML reflow on every tick
+        if (hungerBar.children.length !== MAX_HUNGER) {
+            hungerBar.innerHTML = '';
+            for (let i = 0; i < MAX_HUNGER; i++) {
+                hungerBar.appendChild(document.createElement('div'));
+            }
         }
-        hungerBar.innerHTML = hungerHTML;
+        if (happyBar.children.length !== MAX_HAPPY) {
+            happyBar.innerHTML = '';
+            for (let i = 0; i < MAX_HAPPY; i++) {
+                happyBar.appendChild(document.createElement('div'));
+            }
+        }
 
-        // Happy
-        let happyHTML = '';
-        for (let i = 0; i < MAX_HAPPY; i++) {
-            happyHTML += `<div class="heart ${i < state.happy ? 'happy-filled' : 'empty'}"></div>`;
+        // Update classes only — no DOM rebuild, no reflow
+        const hHearts = hungerBar.children;
+        for (let i = 0; i < MAX_HUNGER; i++) {
+            hHearts[i].className = `heart ${i < state.hunger ? 'filled' : 'empty'}`;
         }
-        happyBar.innerHTML = happyHTML;
+        const haHearts = happyBar.children;
+        for (let i = 0; i < MAX_HAPPY; i++) {
+            haHearts[i].className = `heart ${i < state.happy ? 'happy-filled' : 'empty'}`;
+        }
     }
 
     function renderSprite() {
@@ -1358,15 +1363,22 @@
             return;
         }
 
-        const actions = state.stage === STAGE_EGG
+        const actions = (state.stage === STAGE_EGG)
             ? [{ id: 'knock', emoji: '👊', label: 'KNOCK', desc: t('ui_knock_desc') }]
-            : [
-                { id: 'feed',   emoji: '🍎', label: 'FEED',   desc: t('ui_feed_desc') },
-                { id: 'clean',  emoji: '🚿', label: 'CLEAN',  desc: t('ui_clean_desc') },
-                { id: 'play',   emoji: '✌️', label: 'PLAY',   desc: t('ui_play_desc') },
-                { id: 'battle', emoji: '⚔️', label: 'BATTLE', desc: t('ui_battle_desc') },
-                { id: 'rename', emoji: '✏️', label: 'RENAME', desc: t('ui_rename_desc') },
-            ];
+            : (state.stage === STAGE_BABY)
+                ? [
+                    { id: 'feed',   emoji: '🍎', label: 'FEED',   desc: t('ui_feed_desc') },
+                    { id: 'clean',  emoji: '🚿', label: 'CLEAN',  desc: t('ui_clean_desc') },
+                    { id: 'play',   emoji: '✌️', label: 'PLAY',   desc: t('ui_play_desc') },
+                    { id: 'rename', emoji: '✏️', label: 'RENAME', desc: t('ui_rename_desc') },
+                ]
+                : [
+                    { id: 'feed',   emoji: '🍎', label: 'FEED',   desc: t('ui_feed_desc') },
+                    { id: 'clean',  emoji: '🚿', label: 'CLEAN',  desc: t('ui_clean_desc') },
+                    { id: 'play',   emoji: '✌️', label: 'PLAY',   desc: t('ui_play_desc') },
+                    { id: 'battle', emoji: '⚔️', label: 'BATTLE', desc: t('ui_battle_desc') },
+                    { id: 'rename', emoji: '✏️', label: 'RENAME', desc: t('ui_rename_desc') },
+                ];
 
         // Combine breed actions and system actions
         [...actions, ...systemActions].forEach(a => addActionBtn(a));
@@ -1494,13 +1506,36 @@
     }
 
     // ---- Emotion Bubble ----
-    function showEmotion(emoji, duration = 2000) {
+    function showEmotion(emoji, duration = 2000, targetParent = null) {
+        // Use spriteWrapper as the default home for the bubble
+        const originalParent = spriteWrapper;
+        const parent = targetParent || originalParent;
+        
+        // Temporarily move the bubble to the target container (e.g., during battle)
+        if (emotionBubble.parentElement !== parent) {
+            parent.appendChild(emotionBubble);
+        }
+
         emotionBubble.textContent = emoji;
         emotionBubble.classList.remove('hidden');
         emotionBubble.style.animation = 'none';
         void emotionBubble.offsetHeight;
         emotionBubble.style.animation = '';
-        setTimeout(() => emotionBubble.classList.add('hidden'), duration);
+        
+        // Optional: Ensure it's centered if it was moved to a new parent
+        if (targetParent) {
+            emotionBubble.style.top = '-50px'; // Slightly higher if in battle container
+        } else {
+            emotionBubble.style.top = '-45px';
+        }
+
+        setTimeout(() => {
+            emotionBubble.classList.add('hidden');
+            // After hiding, move it back to its original home if it was moved
+            if (targetParent && emotionBubble.parentElement !== originalParent) {
+                originalParent.appendChild(emotionBubble);
+            }
+        }, duration);
     }
 
     // ---- Commands ----
@@ -1883,10 +1918,6 @@
         renderAll();
     }
 
-    function doFeed() {
-        openFeed();
-    }
-
     function handleFeedChoice(cmd) {
         if (!state.feedOptions) return;
         
@@ -2177,6 +2208,22 @@
     }
 
     // ---- Battle System ----
+
+    // Pre-compiled regex patterns for setBattleMsg masking (avoids re-creation on every call)
+    const BATTLE_MSG_PATTERNS = [
+        /受到\s*\d+\s*點傷害/g,
+        /HP\s*-\d+/gi,
+        /HP\s*\+\d+/gi,
+        /恢復了\s*\d+\s*點\s*HP/g,
+        /(攻擊力|atk).*?\+\d+/gi,
+        /(攻擊力|atk).*?-\d+/gi,
+        /(防禦力|def).*?\+\d+/gi,
+        /(防禦力|def).*?-\d+/gi,
+        /(速度|spd).*?\+\d+/gi,
+        /(速度|spd).*?-\d+/gi,
+        /傷害\s*\+\s*\d+/g,
+    ];
+
     let battleState = null;
 
     function doBattle() {
@@ -2186,6 +2233,10 @@
         }
         if (state.stage === STAGE_EGG) {
             addMsg(t('msg_battle_egg'), 'warning');
+            return;
+        }
+        if (state.stage === STAGE_BABY) {
+            addMsg(t('msg_battle_baby'), 'warning');
             return;
         }
         if (state.hunger < 2) {
@@ -2301,21 +2352,16 @@
 
     function setBattleMsg(txt) {
         if (!state.battleDebug) {
-            // Optimization: combined mask processing
-            const replacements = [
-                { reg: /受到\s*\d+\s*點傷害/g, val: t('msg_battle_dmg') },
-                { reg: /HP\s*-\d+/gi, val: t('msg_battle_dmg') },
-                { reg: /HP\s*\+\d+/gi, val: t('msg_battle_heal') },
-                { reg: /恢復了\s*\d+\s*點\s*HP/g, val: t('msg_battle_heal') },
-                { reg: /(攻擊力|atk).*?\+\d+/gi, val: t('msg_battle_atk_up') },
-                { reg: /(攻擊力|atk).*?-\d+/gi, val: t('msg_battle_atk_down') },
-                { reg: /(防禦力|def).*?\+\d+/gi, val: t('msg_battle_def_up') },
-                { reg: /(防禦力|def).*?-\d+/gi, val: t('msg_battle_def_down') },
-                { reg: /(速度|spd).*?\+\d+/gi, val: t('msg_battle_spd_up') },
-                { reg: /(速度|spd).*?-\d+/gi, val: t('msg_battle_spd_down') },
-                { reg: /傷害\s*\+\s*\d+/g, val: t('msg_battle_dmg_up') }
+            // Use pre-compiled BATTLE_MSG_PATTERNS — avoids rebuilding RegExp objects each call
+            const vals = [
+                t('msg_battle_dmg'),    t('msg_battle_dmg'),
+                t('msg_battle_heal'),   t('msg_battle_heal'),
+                t('msg_battle_atk_up'), t('msg_battle_atk_down'),
+                t('msg_battle_def_up'), t('msg_battle_def_down'),
+                t('msg_battle_spd_up'), t('msg_battle_spd_down'),
+                t('msg_battle_dmg_up'),
             ];
-            replacements.forEach(r => txt = txt.replace(r.reg, r.val));
+            BATTLE_MSG_PATTERNS.forEach((reg, i) => { txt = txt.replace(reg, vals[i]); });
         }
         battleMsgText.textContent = txt;
     }
@@ -2426,23 +2472,16 @@
                 
                 updateBattleHP();
             }
-
-            if (action.triggers && action.triggers.length > 0) {
-                for (const trigger of action.triggers) {
-                    await new Promise(r => setTimeout(r, 250));
-                    setBattleMsg(t('msg_battle_ability', trigger.name, trigger.msg));
-                    syncBattleHPFromTrigger(trigger);
-                }
-            }
         } else {
             setBattleMsg(t('msg_battle_miss', attacker.name));
-            
-            if (action.triggers && action.triggers.length > 0) {
-                for (const trigger of action.triggers) {
-                    await new Promise(r => setTimeout(r, 250));
-                    setBattleMsg(t('msg_battle_ability', trigger.name, trigger.msg));
-                    syncBattleHPFromTrigger(trigger);
-                }
+        }
+
+        // Process ability triggers (shared for both hit and miss outcomes)
+        if (action.triggers && action.triggers.length > 0) {
+            for (const trigger of action.triggers) {
+                await new Promise(r => setTimeout(r, 250));
+                setBattleMsg(t('msg_battle_ability', trigger.name, trigger.msg));
+                syncBattleHPFromTrigger(trigger);
             }
         }
 
@@ -2456,7 +2495,7 @@
             
             const p = document.createElement('div');
             p.className = 'projectile';
-            p.textContent = '💩';
+            p.innerHTML = '<img src="images/poop.png" alt="poop">';
             
             const colors = ['p-red', 'p-blue', 'p-green', 'p-yellow', 'p-purple', 'p-orange'];
             p.classList.add(colors[Math.floor(Math.random() * colors.length)]);
@@ -2487,6 +2526,12 @@
             p.style.setProperty('--ty-start', startY + 'px');
             p.style.setProperty('--tx-end', endX + 'px');
             p.style.setProperty('--ty-end', endY + 'px');
+
+            // Set rotation based on attacker
+            const pRot = isPlayer ? '0deg' : '180deg';
+            const pRotBack = isPlayer ? '180deg' : '0deg';
+            p.style.setProperty('--p-rot', pRot);
+            p.style.setProperty('--p-rot-back', pRotBack);
 
             if (type === 'miss') {
                 // Player miss: fly to the left; Opponent miss: fly upward
@@ -2531,11 +2576,12 @@
             setBattleMsg(msg); // Show in battle UI too
             state.happy = Math.min(MAX_HAPPY, state.happy + 1);
             if (state.happy > 0) state.happyZeroSince = null;
+            showEmotion('😊', 3000, $('player-container'));
         } else {
             const msg = t('msg_battle_lose', getPetName());
             addMsg(msg, 'warning');
             setBattleMsg(msg); // Show in battle UI too
-            showEmotion('😢');
+            showEmotion('😢', 3000, $('player-container'));
         }
 
         save();
