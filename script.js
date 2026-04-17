@@ -5,7 +5,7 @@
 (() => {
     'use strict';
 
-    const IS_DEBUG = false; // [VERSION_FLAG] 控制偵錯指令是否可用
+    const IS_DEBUG = true; // [VERSION_FLAG] 控制偵錯指令是否可用
 
     // Debug helper
     window.onerror = function(msg, url, lineNo, columnNo, error) {
@@ -19,13 +19,6 @@
     };
 
     // ---- Constants ----
-    const FRUITS = [
-        { id: 'apple',      emoji: '🍎', img: 'images/apple.png',  nameKey: 'fruit_apple',   color: '#e74c3c' },
-        { id: 'orange',     emoji: '🍊', img: 'images/orange.png', nameKey: 'fruit_orange',  color: '#f39c12' },
-        { id: 'lemon',      emoji: '🍋', img: 'images/lemon.png',  nameKey: 'fruit_lemon',   color: '#f1c40f' },
-        { id: 'grape',      emoji: '🍇', img: 'images/grape.png',  nameKey: 'fruit_grape',   color: '#9b59b6' },
-        { id: 'guava',      emoji: '🍏', img: 'images/guava.png',  nameKey: 'fruit_guava',   color: '#2ecc71' },
-    ];
 
     const MAX_HUNGER = 6;
     const MAX_HAPPY = 6;
@@ -476,7 +469,8 @@
             diedAt: null,
             customName: null,
             // New evolution fields
-            feedCount: { apple: 0, orange: 0, lemon: 0, grape: 0, guava: 0 },
+            feedCount: { red: 0, orange: 0, light: 0, dark: 0, green: 0 },
+            feedOptions: null,       // 當前餵食介面呈現的 5 個食物
             currentFormId: null,     // id from EVOLUTION_CONFIG (e.g. 'baby', 'fire_rat', 'blast_rat')
             evolutionPathId: null,   // stage1 form id (for determining stage2 candidates)
             stats: null,             // current stats {hp, atk, def, spd}
@@ -734,29 +728,39 @@
             return;
         }
 
+        // Randomly pick one food from each category
+        const categories = ['red', 'orange', 'light', 'dark', 'green'];
+        const selection = [];
+        categories.forEach(cat => {
+            const pool = FOOD_DATA[cat];
+            if (pool && pool.length > 0) {
+                const pick = pool[Math.floor(Math.random() * pool.length)];
+                selection.push(pick);
+            }
+        });
+
+        state.feedOptions = selection;
+        save();
+
         feedChoices.innerHTML = '';
-        FRUITS.forEach(fruit => {
+        selection.forEach(food => {
             const btn = document.createElement('div');
             btn.className = 'feed-choice';
             
-            // Render image if available, else emoji
-            let displayHTML = '';
-            if (fruit.img) {
-                displayHTML = `<img src="${fruit.img}" class="feed-choice-img" alt="${fruit.name}">`;
-            } else {
-                displayHTML = `<span class="feed-choice-emoji">${fruit.emoji}</span>`;
-            }
+            const displayHTML = `<img src="${food.img}" class="feed-choice-img" alt="${food.id}">`;
+
+            // Display food name in current language, but hint/speak in English/Accent
+            const localizedTitle = t('food_' + food.id);
+            const englishTitle = tEn('food_' + food.id);
 
             btn.innerHTML = `
                 ${displayHTML}
-                <span class="feed-choice-name">${t(fruit.nameKey) || fruit.id}</span>
-                <span class="feed-choice-cmd">${fruit.id}</span>
+                <span class="feed-choice-name">${localizedTitle}</span>
+                <span class="feed-choice-cmd">${englishTitle.toLowerCase().replace(/\s+/g, '')}</span>
             `;
             injectSoundIndicator(btn, 'feed');
-            btn.onclick = () => speakCommand(fruit.id, 'feed');
+            btn.onclick = () => speakCommand(englishTitle, 'feed');
             feedChoices.appendChild(btn);
-
-
         });
 
         feedOverlay.classList.remove('hidden');
@@ -826,7 +830,18 @@
 
 
         // Ensure persistent data fields exist
-        if (state.feedCount === undefined) state.feedCount = { apple: 0, orange: 0, lemon: 0, grape: 0, guava: 0 };
+        if (state.feedCount === undefined) state.feedCount = { red: 0, orange: 0, light: 0, dark: 0, green: 0 };
+        // Migrate old counts if necessary
+        if (state.feedCount.apple !== undefined) {
+            state.feedCount = {
+                red: state.feedCount.apple || 0,
+                orange: state.feedCount.orange || 0,
+                light: state.feedCount.lemon || 0,
+                dark: state.feedCount.grape || 0,
+                green: state.feedCount.guava || 0
+            };
+        }
+        if (state.feedOptions === undefined) state.feedOptions = null;
         if (state.currentFormId === undefined) state.currentFormId = null;
         if (state.evolutionPathId === undefined) state.evolutionPathId = null;
         if (state.battleDebug === undefined) state.battleDebug = false;
@@ -859,8 +874,8 @@
 
     // Get current image path
     function getPetImg() {
-        if (state.stage === STAGE_EGG) return 'images/egg.png';
-        return cachedFormInfo ? cachedFormInfo.img : 'images/baby.png';
+        if (state.stage === STAGE_EGG) return 'images/pets/egg.png';
+        return cachedFormInfo ? cachedFormInfo.img : 'images/pets/baby.png';
     }
 
 
@@ -1698,16 +1713,28 @@
                 return;
             }
             if (cmd.startsWith('debugfeed')) {
-                // debugfeed apple 5 — add 5 to apple count
+                // debugfeed [category/id] amount
                 const parts = cmd.split(/\s+/);
                 if (parts.length >= 3) {
-                    const fruitId = parts[1];
+                    let key = parts[1];
                     const amount = parseInt(parts[2]);
-                    if (state.feedCount[fruitId] !== undefined && !isNaN(amount)) {
-                        speakCommand('debug feed', 'other');
-                        state.feedCount[fruitId] += amount;
+                    
+                    // If key is a food ID, find its category
+                    let foundCat = null;
+                    for (const cat in FOOD_DATA) {
+                        if (FOOD_DATA[cat].some(f => f.id === key)) {
+                            foundCat = cat;
+                            break;
+                        }
+                    }
+                    if (foundCat) key = foundCat;
 
-                        addMsg(t('msg_debug_feed', fruitId, amount, state.feedCount[fruitId]), 'warning');
+                    if (state.feedCount[key] !== undefined && !isNaN(amount)) {
+                        speakCommand('debug feed', 'other');
+                        state.feedCount[key] += amount;
+
+                        const label = t('food_cat_' + key) || key;
+                        addMsg(t('msg_debug_feed', label, amount, state.feedCount[key]), 'warning');
                         save();
                         return;
                     }
@@ -1861,26 +1888,47 @@
     }
 
     function handleFeedChoice(cmd) {
-        const fruit = FRUITS.find(f => f.id === cmd);
-        if (!fruit) {
-            const ids = FRUITS.map(f => f.id).join(', ');
-            addMsg(t('msg_feed_invalid', ids), 'error');
+        if (!state.feedOptions) return;
+        
+        const normalizedCmd = cmd.toLowerCase().replace(/\s+/g, '');
+        
+        // Find food by ID (direct) or by the English display name (normalized for UK/US)
+        const food = state.feedOptions.find(f => {
+            if (f.id === cmd) return true; // Exact ID match
+            
+            const enName = tEn('food_' + f.id).toLowerCase().replace(/\s+/g, '');
+            return enName === normalizedCmd;
+        });
+
+        if (!food) {
+            // Updated to show current display names in hint (Localized names for clarity, though input is English)
+            const names = state.feedOptions.map(f => `${t('food_' + f.id)} (${tEn('food_' + f.id)})`).join(', ');
+            addMsg(t('msg_feed_invalid', names), 'error');
             return;
         }
-        speakCommand(cmd, 'feed');
+        
+        // Speak the English term (respects accent)
+        const englishTitle = tEn('food_' + food.id);
+        speakCommand(englishTitle, 'feed');
         closeFeed();
 
         state.hunger = Math.min(MAX_HUNGER, state.hunger + 1);
         if (state.hunger > 0) state.hungerZeroSince = null;
 
-        // Track feed count
-        state.feedCount[fruit.id] = (state.feedCount[fruit.id] || 0) + 1;
+        // Track category feed count
+        state.feedCount[food.category] = (state.feedCount[food.category] || 0) + 1;
 
-        const fruitName = t(fruit.nameKey) || fruit.id;
-        addMsg(t('msg_feed_success', fruit.emoji, fruitName, getPetName(), getStatDesc('hunger', state.hunger).text), 'success');
+        const foodName = t('food_' + food.id) || food.id;
+        // Emoji based on category
+        const catEmojiMap = { red: '🏮', orange: '🍊', light: '🥛', dark: '🍫', green: '🌿' };
+        const emoji = catEmojiMap[food.category] || '🍱';
+
+        addMsg(t('msg_feed_success', emoji, foodName, getPetName(), getStatDesc('hunger', state.hunger).text), 'success');
         showEmotion('😋');
         petSprite.classList.add('happy-jump');
         setTimeout(() => petSprite.classList.remove('happy-jump'), 600);
+        
+        state.feedOptions = null; // Reset options after feeding
         save();
         renderStats();
     }
@@ -2030,7 +2078,13 @@
 
     function doStatus() {
         const fc = state.feedCount;
-        const summary = FRUITS.map(f => `${f.emoji}${t(f.nameKey) || f.name}: ${fc[f.id] || 0}`).join('  ');
+        const catKeys = ['red', 'orange', 'light', 'dark', 'green'];
+        const catEmojiMap = { red: '🏮', orange: '🍊', light: '🥛', dark: '🍫', green: '🌿' };
+        
+        const summary = catKeys.map(k => {
+            const label = t('food_cat_' + k) || k;
+            return `${catEmojiMap[k]}${label}: ${fc[k] || 0}`;
+        }).join('  ');
         addMsg(t('msg_status_feed', summary), 'info');
         
         const hDesc = getStatDesc('hunger', state.hunger).text;
@@ -2417,9 +2471,10 @@
                 // Player center X ≈ 15 + 55 = 70; Opponent center X ≈ rect.width - 20 - 55 = rect.width - 75
                 // Player Y ≈ rect.height - 35(margin-bottom) - 55(half sprite) - 30(hp+name) ≈ rect.height - 120
                 // Opponent Y ≈ 10(margin-top) + 8(hp) + 55(half sprite) ≈ 73
-                startX = isPlayer ? 70 : (rect.width - 75);
+                // endX for player attack: shifted left by 35px (from -75 to -110) so hit & miss paths look more distinct
+                startX = isPlayer ? 70 : (rect.width - 110);
                 startY = isPlayer ? (rect.height - 120) : 73;
-                endX   = isPlayer ? (rect.width - 75) : 70;
+                endX   = isPlayer ? (rect.width - 110) : 70;
                 endY   = isPlayer ? 73 : (rect.height - 120);
             } else {
                 startX = isPlayer ? 155 : (rect.width - 155);
