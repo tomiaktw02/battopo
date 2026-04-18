@@ -69,18 +69,18 @@
     const dexOverlay     = $('dex-overlay');
     const dexGrid        = $('dex-grid');
     const dexProgress    = $('dex-progress');
-    const dexBackBtn     = $('dex-back-btn');
+    const dexCloseBtn     = $('dex-close-btn');
     const dexTabs        = $('dex-tabs');
     const dexTitle       = $('dex-title'); // Added ID in index.html for title updates
     const feedOverlay     = $('feed-overlay');
     const feedChoices     = $('feed-choices');
-    const feedCancelBtn   = $('feed-cancel-btn');
+    const feedCloseBtn   = $('feed-close-btn');
     const hofOverlay      = $('hof-overlay');
     const hofList         = $('hof-list');
     const hofCloseBtn     = $('hof-close-btn');
 
     const langOverlay     = $('lang-overlay');
-    const langBackBtn     = $('lang-back-btn');
+    const langCloseBtn     = $('lang-close-btn');
 
     const statsBar        = $('stats-bar');
     const spriteWrapper   = $('pet-sprite-wrapper');
@@ -1755,8 +1755,8 @@
             remaining = Math.max(0, EVOLUTION_CONFIG.evo2Time - (now - state.evolvedAt));
             nextDesc = t('ui_evo2_timer');
         } else if (state.stage === STAGE_EVO2) {
-            remaining = Math.max(0, LIFESPAN_MS - (now - state.evolvedAt));
-            nextDesc = t('ui_death_timer');
+            evoTimer.textContent = '';
+            return;
         }
 
         if (remaining <= 0) {
@@ -1862,8 +1862,8 @@
 
         // If in a modal mode, prioritize those handlers
         if (state.isRps) {
-            if (cmd === 'back') {
-                speakCommand('back', 'other');
+            if (cmd === 'close') {
+                speakCommand('close', 'other');
                 state.isRps = false;
                 rpsOverlay.classList.add('hidden');
                 cmdInput.placeholder = t('ui_cmd_prompt');
@@ -1873,12 +1873,12 @@
             return;
         }
         if (state.isFeedMode) {
-            if (cmd === 'back') { speakCommand('back', 'other'); closeFeed(); return; }
+            if (cmd === 'close') { speakCommand('close', 'other'); closeFeed(); return; }
             handleFeedChoice(cmd);
             return;
         }
         if (state.isLangMode) {
-            if (cmd === 'back') { speakCommand('back', 'other'); closeLang(); return; }
+            if (cmd === 'close') { speakCommand('close', 'other'); closeLang(); return; }
             if (['english', 'chinese', 'japanese'].includes(cmd)) {
                 speakCommand(cmd, 'other');
                 let code = cmd === 'english' ? 'en' : (cmd === 'chinese' ? 'zh-TW' : 'ja');
@@ -1894,18 +1894,18 @@
             return;
         }
         if (state.isHofMode) {
-            if (cmd === 'back') { speakCommand('back', 'other'); closeHof(); return; }
+            if (cmd === 'close') { speakCommand('close', 'other'); closeHof(); return; }
             // HOF has no other commands
             addMsg(t('msg_hof_invalid'), 'error');
             return;
         }
         if (state.isDexMode) {
-            if (cmd === 'back') { speakCommand('back', 'other'); closeDex(); return; }
+            if (cmd === 'close') { speakCommand('close', 'other'); closeDex(); return; }
             addMsg(t('msg_dex_invalid', cmd), 'error');
             return;
         }
         if (state.isCleaningMode) {
-            if (cmd === 'back') { speakCommand('back', 'other'); closeClean(); return; }
+            if (cmd === 'close') { speakCommand('close', 'other'); closeClean(); return; }
             handleCleaningInput(cmd);
             return;
         }
@@ -2963,11 +2963,11 @@
     });
 
     // ---- Modal Button Listeners (Audio-Only) ----
-    if (dexBackBtn) dexBackBtn.onclick = () => speakCommand('back', 'other');
-    if ($('clean-back-btn')) $('clean-back-btn').onclick = () => speakCommand('back', 'other');
-    if ($('feed-back-btn')) $('feed-back-btn').onclick = () => speakCommand('back', 'other');
-    if ($('lang-back-btn')) $('lang-back-btn').onclick = () => speakCommand('back', 'other');
-    if ($('hof-close-btn')) $('hof-close-btn').onclick = () => speakCommand('back', 'other');
+    if (dexCloseBtn) dexCloseBtn.onclick = () => speakCommand('close', 'other');
+    if ($('clean-close-btn')) $('clean-close-btn').onclick = () => speakCommand('close', 'other');
+    if ($('feed-close-btn')) $('feed-close-btn').onclick = () => speakCommand('close', 'other');
+    if ($('lang-close-btn')) $('lang-close-btn').onclick = () => speakCommand('close', 'other');
+    if ($('hof-close-btn')) $('hof-close-btn').onclick = () => speakCommand('close', 'other');
 
     // Rename Modal Listeners
     if (renameConfirmBtn) {

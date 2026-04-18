@@ -273,16 +273,16 @@ body {
 
 #pet-sprite-wrapper {
     position: relative;
-    width: 220px;
-    height: 220px;
+    width: 320px;
+    height: 320px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 #pet-sprite {
-    width: 200px;
-    height: 200px;
+    width: 300px;
+    height: 300px;
     object-fit: contain;
     image-rendering: auto;
     filter: drop-shadow(0 4px 16px rgba(255, 107, 53, 0.25));
@@ -653,8 +653,8 @@ body {
     background: rgba(255, 255, 255, 0.05);
 }
 
-/* ===== Hof Back Item ===== */
-.hof-back-item {
+/* ===== Hof Close Item ===== */
+.hof-close-item {
     margin: 20px auto 0;
     width: 100px;
     padding: 10px 4px;
@@ -672,13 +672,13 @@ body {
 }
 
 
-.hof-back-label {
+.hof-close-label {
     font-size: 17px;
     color: var(--text-primary);
     font-weight: 700;
 }
 
-.hof-back-cmd {
+.hof-close-cmd {
     font-size: 14px;
     color: var(--accent-warm);
     opacity: 0.9;
@@ -1027,8 +1027,8 @@ body {
 }
 
 .dex-card-img {
-    width: 56px;
-    height: 56px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
     image-rendering: auto;
     border-radius: 8px;
@@ -1042,7 +1042,7 @@ body {
 }
 
 .dex-card-emoji {
-    font-size: 42px;
+    font-size: 60px;
     margin-bottom: 2px;
     line-height: 1;
 }
@@ -1398,18 +1398,18 @@ body {
 
 #battle-msg-box {
     position: absolute;
-    top: 205px; /* Aligns with bottom of opponent sprite */
-    left: 240px; /* Aligns with right of player sprite */
-    right: 0;
+    top: 58px; /* Aligned with top of opponent sprite (20px padding + 20px margin + 18px inner offset) */
+    left: 0;
+    right: 230px; /* Aligned with left edge of opponent sprite (80px margin + 150px width) */
     width: auto;
     background: rgba(26, 26, 46, 0.95);
     border: 1.5px solid var(--accent-fire);
-    border-right: none; /* Seamless right edge */
+    border-left: none; /* Seamless left edge */
     padding: 12px 18px;
-    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-    text-align: center;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    text-align: left;
     z-index: 100;
-    box-shadow: -4px 4px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.5);
     pointer-events: none;
 }
 
@@ -1856,14 +1856,15 @@ body {
 
     /* 戰鬥訊息框：上對齊對手底，左對齊我方右 */
     .mobile-mode #battle-msg-box {
-        top: 145px;
-        left: 135px;
-        right: 0;
+        top: 36px; /* Aligned with top of opponent sprite (8px padding + 10px margin + 18px inner offset) */
+        left: 0;
+        right: 130px; /* Aligned with left edge of opponent sprite (20px margin + 110px width) */
         width: auto;
         padding: 8px 12px;
         font-size: 18px;
-        border-right: none;
-        border-radius: 6px 0 0 6px;
+        border-left: none;
+        border-radius: 0 6px 6px 0;
+        text-align: left;
     }
 }
 

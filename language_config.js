@@ -15,7 +15,7 @@ const LANGUAGES = {
         ui_paper: '布',
         ui_feed_title: '🍱 餵食寵物 🍱',
         ui_feed_desc: '選擇要餵食的食物：',
-        ui_back: '返回',
+        ui_back: '關閉',
         ui_close: '✕ 關閉',
         ui_dex_title: '📖 收集品',
         ui_tab_bestiary: 'Bestiary',
@@ -49,17 +49,17 @@ const LANGUAGES = {
         ui_accent_title: '🗣️ 語音口音 / Voice Accent 🗣️',
         ui_accent_tooltip: '可用指令: accent uk (英式), accent us (美式)',
         ui_cmd_prompt: '輸入指令 (英文)...',
-        ui_feed_placeholder: '輸入食物名或 back 返回...',
+        ui_feed_placeholder: '輸入食物名或 close 關閉...',
         ui_clean_placeholder: '輸入蟲蟲的英文名稱...',
-        ui_lang_placeholder: 'english / chinese / japanese / back',
-        ui_hof_placeholder: '輸入 back 返回...',
+        ui_lang_placeholder: 'english / chinese / japanese / close',
+        ui_hof_placeholder: '輸入 close 關閉...',
         ui_rps_placeholder: '輸入 scissors, rock, 或 paper...',
         ui_knock_desc: '敲敲這顆蛋，看看會發生什麼',
         ui_clean_desc: '幫寵物洗澡，清理環境',
         ui_play_desc: '跟寵物玩猜拳遊戲',
         ui_battle_desc: '挑戰野外戰鬥 (飽食度需 >= 2)',
         ui_rename_desc: '幫你的夥伴換個新名字',
-        ui_dex_desc: '查看收集品圖鑑 (指令：collection)',
+        ui_dex_desc: '查看收集品圖鑑',
         ui_evo1_timer: '一階進化',
         ui_evo2_timer: '二階進化',
         ui_death_timer: '安然離世',
@@ -73,7 +73,7 @@ const LANGUAGES = {
         ui_rename_modal_desc: '請輸入您的夥伴新名字：',
         ui_confirm: '確認',
         ui_cancel: '取消',
-        
+
         // Food Names
         food_redbean: '紅豆',
         food_dragonfruit: '紅龍果',
@@ -182,7 +182,7 @@ const LANGUAGES = {
         food_cat_green: '綠色食物',
 
         // System messages
-        msg_feed_prompt: '🍱 請輸入顯示的食物英文名來餵食，或輸入 back 返回',
+        msg_feed_prompt: '🍱 請輸入顯示的食物英文名來餵食，或輸入 close 關閉',
         msg_feed_cant_battle: '⚔️ 戰鬥中無法餵食！',
         msg_feed_full: '🍎 飽食度已滿，不需要餵食！',
         msg_dex_new: '📖 生物圖鑑新增：',
@@ -199,7 +199,7 @@ const LANGUAGES = {
         msg_status_battle: '⚔️ 戰績統計 — 勝場: {0} / 總對戰: {1} (勝率: {2}%)',
         msg_status_evo1: '🔮 依目前狀態，一階進化預測: {0}（{1}）',
         msg_status_evo2: '🔮 依目前狀態，二階進化預測: {0}（{1}）',
-        msg_status_evo_max: '⏳ 寵物已達到最終階段，壽命剩餘: 5天',
+        msg_status_evo_max: '⏳ 寵物已達到最終階段',
         msg_welcome_back: '歡迎回來！你的 {0} 正等著你！',
         msg_rps_start: '✌️ 猜拳遊戲開始！請輸入你的選擇...',
         msg_rps_invalid: '❌ 請輸入: scissors, rock, 或 paper',
@@ -236,10 +236,8 @@ const LANGUAGES = {
         msg_battle_log_toggle: '⚔️ 詳細戰鬥訊息已{0}',
         msg_knock: '✊ 咚咚！',
         msg_egg_hatch: '✨ 孵化了！{0}誕生了！',
-        msg_dex_evolve: '✨ {0} 進化為 {1}！',
-        msg_dex_new: '📖 生物圖鑑新增：',
-        msg_hof_invalid: '❌ 無效指令。輸入 back 返回。',
-        msg_dex_invalid: '❌ 無效指令。輸入 back 返回。',
+        msg_hof_invalid: '❌ 無效指令。輸入 close 關閉。',
+        msg_dex_invalid: '❌ 無效指令。輸入 close 關閉。',
 
         msg_debug_egg: '🥚 蛋階段無法執行此操作！',
         msg_debug_stat: '🛠️ [DEBUG] {0} 已設定為 {1}',
@@ -460,7 +458,7 @@ const LANGUAGES = {
         leave_prompt_1: '想要再領養一隻新的寵物蛋嗎？',
         leave_prompt_2: '請在對話框輸入 <span style="color:var(--accent-fire);font-family:var(--font-pixel);font-size:12px;">restart</span> 重新開始',
         dead_msg: '{0} 已經安然離世了...',
-        
+
         // Status Desc - Hunger
         stat_hunger_0: '飢腸轆轆',
         stat_hunger_1: '感覺好餓',
@@ -469,7 +467,7 @@ const LANGUAGES = {
         stat_hunger_4: '挺滿足的',
         stat_hunger_5: '感覺很飽',
         stat_hunger_6: '非常充實',
-        
+
         // Status Desc - Happy
         stat_happy_0: '徹底心碎',
         stat_happy_1: '悶悶不樂',
@@ -478,7 +476,7 @@ const LANGUAGES = {
         stat_happy_4: '感覺不錯',
         stat_happy_5: '很快樂',
         stat_happy_6: '興奮不已',
-        
+
         // Status Desc - Poop
         stat_poop_0: '一塵不染',
         stat_poop_1: '有點小異味',
@@ -502,7 +500,7 @@ const LANGUAGES = {
         ui_paper: 'Paper',
         ui_feed_title: '🍱 Feed Pet 🍱',
         ui_feed_desc: 'Choose a food to feed:',
-        ui_back: 'Back',
+        ui_back: 'Close',
         ui_close: '✕ Close',
         ui_dex_title: '📖 Collection',
         ui_tab_bestiary: 'Bestiary',
@@ -536,17 +534,17 @@ const LANGUAGES = {
         ui_accent_title: '🗣️ Voice Accent 🗣️',
         ui_accent_tooltip: 'Commands: accent uk, accent us',
         ui_cmd_prompt: 'Enter command...',
-        ui_feed_placeholder: 'Enter food name or back...',
+        ui_feed_placeholder: 'Enter food name or close...',
         ui_clean_placeholder: 'Enter bug name in English...',
-        ui_lang_placeholder: 'english / chinese / japanese / back',
-        ui_hof_placeholder: 'Enter back to return...',
+        ui_lang_placeholder: 'english / chinese / japanese / close',
+        ui_hof_placeholder: 'Enter close to return...',
         ui_rps_placeholder: 'Enter scissors, rock, or paper...',
         ui_knock_desc: 'Knock on the egg to see what happens',
         ui_clean_desc: 'Clean the pet and the environment',
         ui_play_desc: 'Play Rock-Paper-Scissors with your pet',
         ui_battle_desc: 'Challenge wild battles (Hunger >= 2)',
         ui_rename_desc: 'Give your companion a new name',
-        ui_dex_desc: 'View Collected Items (Command: collection)',
+        ui_dex_desc: 'View Collected Items',
         ui_evo1_timer: 'Stage 1 Evolution',
         ui_evo2_timer: 'Stage 2 Evolution',
         ui_death_timer: 'End of Lifespan',
@@ -560,7 +558,7 @@ const LANGUAGES = {
         ui_rename_modal_desc: 'Enter a new name for your partner:',
         ui_confirm: 'Confirm',
         ui_cancel: 'Cancel',
-        
+
         // Food Names
         food_redbean: 'Red Bean',
         food_dragonfruit: 'Dragon Fruit',
@@ -675,7 +673,7 @@ const LANGUAGES = {
         food_cat_green: 'Green Food',
 
         // System messages
-        msg_feed_prompt: '🍱 Type the english name of the food to feed, or type "back"',
+        msg_feed_prompt: '🍱 Type the english name of the food to feed, or type "close"',
         msg_feed_cant_battle: '⚔️ Cannot feed during battle!',
         msg_feed_full: '🍎 Hunger is full, no need to feed!',
         msg_dex_new: '📖 Added to Bestiary: ',
@@ -692,7 +690,7 @@ const LANGUAGES = {
         msg_status_battle: '⚔️ Combat Stats — Wins: {0} / Battles: {1} (Win Rate: {2}%)',
         msg_status_evo1: '🔮 Based on current condition, Stage 1 evolution prediction: {0} ({1})',
         msg_status_evo2: '🔮 Based on current condition, Stage 2 evolution prediction: {0} ({1})',
-        msg_status_evo_max: '⏳ Pet has reached final stage, remaining lifespan: 5 days',
+        msg_status_evo_max: '⏳ Pet has reached final stage',
         msg_welcome_back: 'Welcome back! Your {0} is waiting for you!',
         msg_rps_start: '✌️ RPS game starts! Please enter your choice...',
         msg_rps_invalid: '❌ Please enter: scissors, rock, or paper',
@@ -729,10 +727,8 @@ const LANGUAGES = {
         msg_battle_log_toggle: '⚔️ Detailed battle log is now {0}',
         msg_knock: '✊ Knock knock!',
         msg_egg_hatch: '✨ Hatched! {0} is born!',
-        msg_dex_evolve: '✨ {0} evolved into {1}!',
-        msg_dex_new: '📖 New Bestiary entry:',
-        msg_hof_invalid: '❌ Invalid command. Type "back" to return.',
-        msg_dex_invalid: '❌ Invalid command. Type "back" to return.',
+        msg_hof_invalid: '❌ Invalid command. Type "close" to return.',
+        msg_dex_invalid: '❌ Invalid command. Type "close" to return.',
 
         msg_debug_egg: '🥚 Cannot perform this action in egg stage!',
         msg_debug_stat: '🛠️ [DEBUG] {0} set to {1}',
@@ -857,7 +853,7 @@ const LANGUAGES = {
         pet_fist_lion: 'Fist Lion',
         pet_shadow_spider: 'Shadow Spider',
         pet_shadow_turtle: 'Shadow Turtle',
-        
+
         pet_toxic_boar: 'Toxic Boar',
         pet_junk_boar: 'Junk Boar',
         pet_ghost_boar: 'Ghost Boar',
@@ -956,7 +952,7 @@ const LANGUAGES = {
         leave_prompt_1: 'Want to adopt a new pet egg?',
         leave_prompt_2: 'Type <span style="color:var(--accent-fire);font-family:var(--font-pixel);font-size:12px;">egg</span> in the console to restart.',
         dead_msg: '{0} passed away peacefully...',
-        
+
         // Status Desc - Hunger
         stat_hunger_0: 'Starving',
         stat_hunger_1: 'Very Hungry',
@@ -965,7 +961,7 @@ const LANGUAGES = {
         stat_hunger_4: 'Satisfied',
         stat_hunger_5: 'Very full',
         stat_hunger_6: 'Stuffed',
-        
+
         // Status Desc - Happy
         stat_happy_0: 'Heartbroken',
         stat_happy_1: 'Depressed',
@@ -974,14 +970,13 @@ const LANGUAGES = {
         stat_happy_4: 'Feeling good',
         stat_happy_5: 'Happy',
         stat_happy_6: 'Excited!',
-        
+
         // Status Desc - Poop
         stat_poop_0: 'Spotless',
         stat_poop_1: 'Slight odor',
         stat_poop_2: 'Messy',
         stat_poop_3: 'Stinky',
         stat_poop_4: 'Suffocating',
-        msg_battle_baby: '👶 Too young to battle!',
     },
     'ja': {
         // UI Text
@@ -1000,9 +995,9 @@ const LANGUAGES = {
         ui_paper: 'パー',
         ui_feed_title: '🍱 ごはん 🍱',
         ui_feed_desc: 'あげる食べ物を選んでください：',
-        ui_back: '戻る',
+        ui_back: '閉じる',
         ui_close: '✕ 閉じる',
-        ui_dex_desc: 'コレクション図鑑を表示 (コマンド：collection)',
+        ui_dex_desc: 'コレクション図鑑を表示',
         ui_tab_bestiary: 'Bestiary',
         ui_tab_bestiary_desc: '発見したペットたちの図鑑',
         ui_tab_food: 'Foods',
@@ -1038,17 +1033,16 @@ const LANGUAGES = {
         ui_accent_title: '🗣️ 音声アクセント / Voice Accent 🗣️',
         ui_accent_tooltip: '使用可能コマンド: accent uk, accent us',
         ui_cmd_prompt: 'コマンドを入力...',
-        ui_feed_placeholder: '食物名 または back...',
+        ui_feed_placeholder: '食物名 または close...',
         ui_clean_placeholder: 'むしの英語名称を入力...',
-        ui_lang_placeholder: 'english / chinese / japanese / back',
-        ui_hof_placeholder: 'back と入力して戻る...',
+        ui_lang_placeholder: 'english / chinese / japanese / close',
+        ui_hof_placeholder: 'close と入力して閉じる...',
         ui_rps_placeholder: 'scissors, rock, または paper...',
         ui_knock_desc: '卵を叩いて何が起きるか見てみよう',
         ui_clean_desc: 'ペットを掃除して環境をきれいにします',
         ui_play_desc: 'ペットとじゃんけんで遊びます',
         ui_battle_desc: '野生のバトルに挑戦 (満腹度2以上必要)',
         ui_rename_desc: '相棒に新しい名前を付けます',
-        ui_dex_desc: '収集したペットの生物図鑑 (Bestiary) を見ます',
         ui_evo1_timer: '第1形態への進化',
         ui_evo2_timer: '第2形態への進化',
         ui_death_timer: '死期',
@@ -1164,10 +1158,9 @@ const LANGUAGES = {
         food_cat_green: '緑の食べ物',
 
         // System messages
-        msg_feed_prompt: '🍱 あげる食べ物の英語名を入力するか、「back」で戻ってください',
+        msg_feed_prompt: '🍱 あげる食べ物の英語名を入力するか、「close」で閉じてください',
         msg_feed_cant_battle: '⚔️ バトル中は餌をあげられません！',
         msg_feed_full: '🍎 お腹がいっぱいで、今は食べられません！',
-        msg_dex_new: '📖 生物図鑑に登録：',
         msg_come_back: ' が戻ってきました！',
         msg_evolve: '✨ {0} は {1} に進化した！',
         msg_evolve_stage1: '📊 第1形態へ進化しました！',
@@ -1181,7 +1174,7 @@ const LANGUAGES = {
         msg_status_battle: '⚔️ 戦績 — 勝利: {0} / 総対戦: {1} (勝率: {2}%)',
         msg_status_evo1: '🔮 現在の状態で予測される第1形態: {0} ({1})',
         msg_status_evo2: '🔮 現在の状態で予測される第2形態: {0} ({1})',
-        msg_status_evo_max: '⏳ ペットは最終形態です。残り寿命: 5日',
+        msg_status_evo_max: '⏳ ペットは最終形態です',
         msg_welcome_back: 'おかえりなさい！ {0} が待っています！',
         msg_rps_start: '✌️ じゃんけん開始！選択を入力してください...',
         msg_rps_invalid: '❌ 入力してください: scissors, rock, または paper',
@@ -1217,10 +1210,8 @@ const LANGUAGES = {
         msg_battle_log_toggle: '⚔️ 詳細バトルログが{0}になりました',
         msg_knock: '✊ コンコン！',
         msg_egg_hatch: '✨ 孵化した！{0}が誕生しました！',
-        msg_dex_evolve: '✨ {0} は {1} に進化した！',
-        msg_dex_new: '📖 生物図鑑に新登録：',
-        msg_hof_invalid: '❌ 無効なコマンドです。backで戻ります。',
-        msg_dex_invalid: '❌ 無効なコマンドです。backで戻ります。',
+        msg_hof_invalid: '❌ 無効なコマンドです。closeで閉じます。',
+        msg_dex_invalid: '❌ 無効なコマンドです。closeで閉じます。',
 
         msg_debug_egg: '🥚 卵の段階ではこの操作はできません！',
         msg_debug_stat: '🛠️ [DEBUG] {0} を {1} に設定しました',
@@ -1233,7 +1224,7 @@ const LANGUAGES = {
         msg_debug_evo_err: '❌ [DEBUG] すでに最終段階です！',
         msg_debug_evo1: '✨ [DEBUG] 第一段階進化を強制発動しました！',
         msg_debug_evo2: '✨ [DEBUG] 第二段階進化を強制発動しました！',
-        msg_debug_feed: '🛠️ [DEBUG] {0} を {1} 追加しました。合計: {2}' ,
+        msg_debug_feed: '🛠️ [DEBUG] {0} を {1} 追加しました。合計: {2}',
         msg_debug_feed_usage: '❌ [DEBUG] 使い方: debugfeed [果物名] [数量]',
         msg_debug_setpet: '🛠️ [DEBUG] ペットの形態を {0} {1} に強制設定しました！',
         msg_debug_setpet_usage: '❌ [DEBUG] 使い方: debugsetpet [形態ID]',
@@ -1344,7 +1335,7 @@ const LANGUAGES = {
         pet_fist_lion: '拳銃ライオン',
         pet_shadow_spider: '影蜘蛛',
         pet_shadow_turtle: '冥亀',
-        
+
         pet_toxic_boar: '毒沼猪',
         pet_junk_boar: '重装廃猪',
         pet_ghost_boar: '怨霊泥猪',
@@ -1444,7 +1435,7 @@ const LANGUAGES = {
         leave_prompt_1: '新しいペットのタマゴを引き取りますか？',
         leave_prompt_2: '入力欄に <span style="color:var(--accent-fire);font-family:var(--font-pixel);font-size:12px;">egg</span> と入力して再スタート',
         dead_msg: '{0} は安らかに息を引き取った...',
-        
+
         // Status Desc - Hunger
         stat_hunger_0: '腹ペコ',
         stat_hunger_1: 'かなり空腹',
@@ -1453,7 +1444,7 @@ const LANGUAGES = {
         stat_hunger_4: '満足',
         stat_hunger_5: 'お腹いっぱい',
         stat_hunger_6: '満腹',
-        
+
         // Status Desc - Happy
         stat_happy_0: '絶望',
         stat_happy_1: '落ち込む',
@@ -1462,7 +1453,7 @@ const LANGUAGES = {
         stat_happy_4: 'いい気分',
         stat_happy_5: 'ハッピー',
         stat_happy_6: '超ご機嫌！',
-        
+
         // Status Desc - Poop
         stat_poop_0: 'ピカピカ',
         stat_poop_1: '少し匂う',
@@ -1479,7 +1470,7 @@ function t(key, ...args) {
     if (!text) return key;
 
     for (let i = 0; i < args.length; i++) {
-        text = text.replace('{'+i+'}', args[i]);
+        text = text.replace('{' + i + '}', args[i]);
     }
     return text;
 }
@@ -1491,7 +1482,7 @@ function t(key, ...args) {
 function tEn(key, ...args) {
     const accent = localStorage.getItem('battopo_voice_accent') || 'us';
     let text = null;
-    
+
     const enDict = LANGUAGES['en'];
     if (!enDict) return key;
 
@@ -1499,16 +1490,16 @@ function tEn(key, ...args) {
     if (accent === 'uk') {
         text = enDict[key + '_uk'];
     }
-    
+
     // 找不到或美式口音則用標準版
     if (!text) {
         text = enDict[key];
     }
-    
+
     if (!text) return key;
 
     for (let i = 0; i < args.length; i++) {
-        text = text.replace('{'+i+'}', args[i]);
+        text = text.replace('{' + i + '}', args[i]);
     }
     return text;
 }

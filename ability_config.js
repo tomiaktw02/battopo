@@ -169,7 +169,7 @@ const ABILITY_CONFIG = {
         effectType: 'statMod',
         target: 'self',
         stat: 'def',
-        val: -10,
+        val: -12,
         duration: 'nextTurn'
     },
     '重甲解離': {
@@ -198,7 +198,7 @@ const ABILITY_CONFIG = {
         effectType: 'multiEffect',
         effects: [
             { nameKey: 'ability_rageshell_name', effectType: 'statModPermanent', stat: 'atk', val: 1, target: 'self' },
-            { nameKey: 'ability_rageshell_name', effectType: 'statModPermanent', stat: 'def', val: -6, target: 'self' }
+            { nameKey: 'ability_rageshell_name', effectType: 'statModPermanent', stat: 'def', val: -8, target: 'self' }
         ]
     },
     '飄渺虛甲': {

@@ -317,8 +317,16 @@ const BattleEngine = (() => {
 
                 const isGuardBroken = (defender.consecutiveBlocks >= 2);
                 
+                const action = {
+                    attacker: aSide,
+                    defender: dSide,
+                    damage: 0,
+                    baseDamage: 0,
+                    triggers: []
+                };
+
                 // 攻擊前判定 (用於設定優劣勢等模式)
-                triggerAbilities(attacker, defender, 'beforeAttack', {}, null, null);
+                triggerAbilities(attacker, defender, 'beforeAttack', {}, null, action);
 
                 const result = calculateAttack(attacker, defender);
                 
@@ -328,13 +336,6 @@ const BattleEngine = (() => {
                     result.guardBroken = true;
                 }
 
-                const action = {
-                    attacker: aSide,
-                    defender: dSide,
-                    damage: 0,
-                    baseDamage: 0,
-                    triggers: []
-                };
 
                 // 檢查是否正在休息
                 if (attacker.isResting) {
