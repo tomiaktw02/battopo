@@ -227,12 +227,10 @@ const BattleEngine = (() => {
                 case 'bonusDamage':
                     if (actionRef) {
                         const bonusAbilityName = _t(ab.nameKey);
-                        // 僅計入對手傷害
-                        if (target.side !== pet.side) {
-                            actionRef.damage += val;
-                        }
+                        // 計入對手傷害
+                        actionRef.damage += val;
                         opponent.hp -= val;
-                        actionRef.triggers.push({ type: 'bonusDamage', name: bonusAbilityName, damage: val, msg: _t('battle_ability_bonus', bonusAbilityName, val) });
+                        actionRef.triggers.push({ type: 'bonusDamage', side: opponent.side, name: bonusAbilityName, damage: val, msg: _t('battle_ability_bonus', bonusAbilityName, val) });
                     }
                     break;
             }

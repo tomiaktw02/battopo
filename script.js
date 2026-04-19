@@ -2599,14 +2599,7 @@
             for (const effect of log.preBattle) {
                 await new Promise(r => setTimeout(r, 500));
                 setBattleMsg(t('msg_battle_ability', effect.ability, effect.msg));
-                if (effect.success && effect.damage > 0) {
-                    const defender = effect.attacker === 'p1' ? battleState.opponent : battleState.player;
-                    defender.hp -= effect.damage;
-                    updateBattleHP();
-                    const dSide = effect.attacker === 'p1' ? 'opponent' : 'player';
-                    $(`${dSide}-sprite`).classList.add('damage-flash');
-                    setTimeout(() => $(`${dSide}-sprite`).classList.remove('damage-flash'), 400);
-                }
+                syncBattleHPFromTrigger(effect);
             }
         }
 
@@ -2673,6 +2666,19 @@
             else o.hp = Math.max(0, o.hp - val);
         }
         updateBattleHP();
+
+        // 加一點閃爍特效供傷害判定
+        const isDamage = (trigger.type === 'damage' || trigger.type === 'bonusDamage');
+        if (isDamage && val > 0 && (trigger.side === 'p1' || trigger.side === 'p2')) {
+            const dSide = trigger.side === 'p1' ? 'player' : 'opponent';
+            const el = $(`${dSide}-sprite`);
+            if (el) {
+                el.classList.remove('damage-flash');
+                void el.offsetWidth;
+                el.classList.add('damage-flash');
+                setTimeout(() => el.classList.remove('damage-flash'), 400);
+            }
+        }
     }
 
     async function runLogBattle() {
