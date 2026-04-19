@@ -1398,7 +1398,7 @@ body {
 
 #battle-msg-box {
     position: absolute;
-    top: 58px; /* Aligned with top of opponent sprite (20px padding + 20px margin + 18px inner offset) */
+    top: 0; /* Aligned with the top edge of the battle interface */
     left: 0;
     right: 230px; /* Aligned with left edge of opponent sprite (80px margin + 150px width) */
     width: auto;
@@ -1856,7 +1856,7 @@ body {
 
     /* 戰鬥訊息框：上對齊對手底，左對齊我方右 */
     .mobile-mode #battle-msg-box {
-        top: 36px; /* Aligned with top of opponent sprite (8px padding + 10px margin + 18px inner offset) */
+        top: 0; /* Aligned with the top edge of the battle interface */
         left: 0;
         right: 130px; /* Aligned with left edge of opponent sprite (20px margin + 110px width) */
         width: auto;

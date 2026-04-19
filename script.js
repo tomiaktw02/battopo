@@ -2717,6 +2717,19 @@
         const aSide = action.attacker === 'p1' ? 'player' : 'opponent';
         const dSide = action.defender === 'p1' ? 'player' : 'opponent';
 
+        if (action.resting) {
+            // 處理休息狀態，不播放攻擊動畫
+            if (action.triggers && action.triggers.length > 0) {
+                for (const trigger of action.triggers) {
+                    await new Promise(r => setTimeout(r, 250));
+                    setBattleMsg(t('msg_battle_ability', trigger.name, trigger.msg));
+                    syncBattleHPFromTrigger(trigger);
+                }
+            }
+            await new Promise(r => setTimeout(r, 300));
+            return;
+        }
+
         const isCritFail = action.triggers && action.triggers.some(t => t.type === 'crit_fail');
         const projType = isCritFail ? 'loop' : (action.hit ? 'normal' : 'miss');
 
