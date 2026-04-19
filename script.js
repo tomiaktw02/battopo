@@ -55,6 +55,7 @@
     const evoTimer       = $('evolution-timer');
     const actionButtons  = $('action-buttons');
     const petSprite      = $('pet-sprite');
+    const petSpriteWrapper = $('pet-sprite-wrapper');
     const poopArea       = $('poop-area');
     const emotionBubble  = $('emotion-bubble');
     const cmdInput       = $('command-input');
@@ -2920,6 +2921,39 @@
         renderAll();
     }
 
+    // ---- Idle Wander ----
+    let wanderTimer = null;
+    let currentWanderX = 0;
+    function startIdleWander() {
+        if (wanderTimer) clearInterval(wanderTimer);
+        wanderTimer = setInterval(() => {
+            if (state.left || state.dead || battleState || state.stage === STAGE_EGG || state.stage === 'tombstone') {
+                petSpriteWrapper.style.translate = '';
+                petSpriteWrapper.style.scale = '';
+                return;
+            }
+            if (Math.random() < 0.3) {
+                const deltaX = (Math.random() * 40) - 20; // -20 to +20
+                currentWanderX += deltaX;
+                
+                // Dynamically calculate boundary so it won't go out of screen/container
+                const containerWidth = document.getElementById('game-container').clientWidth;
+                const petWidth = petSpriteWrapper.offsetWidth;
+                const maxMove = Math.max(0, (containerWidth - petWidth) / 2 - 15);
+                
+                currentWanderX = Math.max(-maxMove, Math.min(maxMove, currentWanderX));
+                
+                const invertedPets = ['aurora_eagle', 'hunger_cat', 'mega_lion'];
+                let scaleX = deltaX < 0 ? -1 : 1;
+                if (invertedPets.includes(state.currentFormId)) {
+                    scaleX *= -1;
+                }
+                petSpriteWrapper.style.translate = `${currentWanderX}px 0`;
+                petSpriteWrapper.style.scale = `${scaleX} 1`;
+            }
+        }, 3000);
+    }
+
     // ---- Init ----
     function init() {
         load();
@@ -2958,6 +2992,8 @@
                 renderEvoTimer();
             }
         }, 60000);
+
+        startIdleWander();
     }
 
     // ---- Event Listeners ----

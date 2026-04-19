@@ -278,6 +278,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: translate 1.5s ease-in-out, scale 0.3s ease-in-out;
 }
 
 #pet-sprite {
@@ -1742,12 +1743,12 @@ body {
     }
 
     .mobile-mode #pet-sprite-wrapper {
-        height: 130px; /* Even smaller to fit */
+        height: 195px; /* Even smaller to fit */
     }
 
     .mobile-mode #pet-sprite {
-        width: 130px;
-        height: 130px;
+        width: 195px;
+        height: 195px;
     }
 
     .mobile-mode #message-log {
