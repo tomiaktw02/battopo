@@ -23,7 +23,7 @@
     const MAX_HUNGER = 6;
     const MAX_HAPPY = 6;
     const MAX_POOP = 4;
-    const KNOCK_NEEDED = 10;
+
 
     // Time intervals in milliseconds
     const HUNGER_DECAY_MS   = 4 * 60 * 60 * 1000;   // 4 hours
@@ -65,23 +65,22 @@
     const rpsResult      = $('rps-result');
     const leaveOverlay   = $('leave-overlay');
     const leaveMessage   = $('leave-message');
-    const restartBtn     = $('restart-btn');
-    const loadFileInput  = $('load-file-input');
+
     const dexOverlay     = $('dex-overlay');
     const dexGrid        = $('dex-grid');
     const dexProgress    = $('dex-progress');
     const dexCloseBtn     = $('dex-close-btn');
     const dexTabs        = $('dex-tabs');
-    const dexTitle       = $('dex-title'); // Added ID in index.html for title updates
+
     const feedOverlay     = $('feed-overlay');
     const feedChoices     = $('feed-choices');
-    const feedCloseBtn   = $('feed-close-btn');
+
     const hofOverlay      = $('hof-overlay');
     const hofList         = $('hof-list');
-    const hofCloseBtn     = $('hof-close-btn');
+
 
     const langOverlay     = $('lang-overlay');
-    const langCloseBtn     = $('lang-close-btn');
+
 
     const statsBar        = $('stats-bar');
     const spriteWrapper   = $('pet-sprite-wrapper');
@@ -1545,8 +1544,13 @@
     }
 
     function renderPoops() {
+        if (state.stage === STAGE_EGG || state.isRps || state.isFeedMode) {
+            if (poopArea.children.length > 0) poopArea.innerHTML = '';
+            return;
+        }
+        if (poopArea.children.length === state.poopCount) return;
+
         poopArea.innerHTML = '';
-        if (state.stage === STAGE_EGG || state.isRps || state.isFeedMode) return;
         for (let i = 0; i < state.poopCount; i++) {
             const p = document.createElement('div');
             p.className = 'poop';
@@ -1556,7 +1560,17 @@
         }
     }
 
+    let lastRenderedActionState = null;
+
     function renderActions() {
+        const lang = localStorage.getItem('battopo_lang') || 'zh-tw';
+        const currentStateKey = `stage:${state.stage}_left:${state.left}_dead:${state.dead}_battle:${!!battleState}_lang:${lang}`;
+        
+        if (lastRenderedActionState === currentStateKey) {
+            return;
+        }
+        lastRenderedActionState = currentStateKey;
+
         actionButtons.innerHTML = '';
         if (battleState) {
             hideActionTooltip();
