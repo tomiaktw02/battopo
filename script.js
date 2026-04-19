@@ -28,7 +28,7 @@
     // Time intervals in milliseconds
     const HUNGER_DECAY_MS   = 4 * 60 * 60 * 1000;   // 4 hours
     const HAPPY_DECAY_MS    = 4 * 60 * 60 * 1000;    // 4 hours
-    const POOP_INTERVAL_MS  = 6 * 60 * 60 * 1000;    // 6 hours
+    const POOP_INTERVAL_MS  = 5 * 60 * 60 * 1000;    // 5 hours
     const LEAVE_THRESHOLD_MS = 24 * 60 * 60 * 1000;  // 24 hours
 
     const SAVE_KEY = 'battopo_save';
