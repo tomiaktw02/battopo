@@ -1,4 +1,4 @@
-﻿// =========================================================
+// =========================================================
 // Battopo - 進化設定表
 // 修改此檔案可直接影響遊戲中的進化條件與預設寵物名稱
 // =========================================================
@@ -49,7 +49,7 @@ const EVOLUTION_CONFIG = {
             name: '炎尾鼠',
             emoji: '🔥',
             img: 'images/pets/fire_rat.png',
-            condition: 'most_apple',
+            condition: 'most_red',
             description: '紅色飼料(蘋果)數量最多',
             stats: { hp: 2, atk: 14, def: 7, spd: 10 }
         },
@@ -58,7 +58,7 @@ const EVOLUTION_CONFIG = {
             name: '芽角鹿',
             emoji: '🌿',
             img: 'images/pets/sprout_deer.png',
-            condition: 'most_guava',
+            condition: 'most_green',
             description: '綠色飼料(芭樂)數量最多',
             stats: { hp: 3, atk: 8, def: 9, spd: 10 }
         },
@@ -67,7 +67,7 @@ const EVOLUTION_CONFIG = {
             name: '閃毛貓',
             emoji: '⚡',
             img: 'images/pets/spark_cat.png',
-            condition: 'most_lemon',
+            condition: 'most_light',
             description: '黃色飼料(檸檬)數量最多',
             stats: { hp: 2, atk: 15, def: 6, spd: 13 }
         },
@@ -76,7 +76,7 @@ const EVOLUTION_CONFIG = {
             name: '影球狐',
             emoji: '🌙',
             img: 'images/pets/shadow_fox.png',
-            condition: 'most_grape',
+            condition: 'most_dark',
             description: '紫色飼料(葡萄)數量最多',
             stats: { hp: 2, atk: 13, def: 8, spd: 10 }
         },
@@ -413,7 +413,7 @@ const EVOLUTION_CONFIG = {
                 name: '獄火岩龜',
                 emoji: '🔥',
                 img: 'images/pets/hellfire_turtle.png',
-                condition: 'most_apple',
+                condition: 'most_red',
                 description: '蘋果餵食多 / 熔岩進化',
                 stats: { hp: 5, atk: 18, def: 18, spd: 5 },
                 ability: '怒火熔殼'

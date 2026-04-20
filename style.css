@@ -1981,3 +1981,115 @@ body {
     position: relative;
     display: inline-block;
 }
+
+/* ===== Challenge (PvP) Overlay ===== */
+#challenge-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 130px; /* Leave space for input area at the bottom */
+    background: rgba(15, 15, 26, 0.85); /* Slightly more transparent */
+    display: flex;
+    align-items: flex-start; /* Move to top */
+    justify-content: center;
+    padding-top: 20px;
+    z-index: 150; /* Lower than input area (200) to keep input visible */
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+}
+
+#challenge-overlay.hidden {
+    display: none;
+}
+
+#challenge-modal {
+    background: var(--bg-card-lighter);
+    border: 2px solid var(--accent-fire);
+    border-radius: var(--radius);
+    padding: 16px; /* Smaller padding */
+    text-align: center;
+    max-width: 340px;
+    width: 92%;
+    box-shadow: 0 0 30px rgba(255, 107, 53, 0.2);
+    animation: modalSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#challenge-modal h2 {
+    font-family: var(--font-pixel);
+    font-size: 18px; /* Slightly smaller */
+    color: var(--accent-warm);
+    margin-bottom: 12px;
+}
+
+#challenge-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.challenge-choice {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    padding: 10px; /* Smaller padding */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+    user-select: none;
+    cursor: default;
+}
+
+.challenge-choice:hover {
+    border-color: var(--accent-fire);
+    background: rgba(255, 107, 53, 0.1);
+}
+
+.challenge-emoji {
+    font-size: 32px; /* Smaller */
+}
+
+.challenge-label {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text-primary);
+}
+
+.challenge-cmd {
+    font-size: 14px;
+    color: var(--accent-fire);
+    font-family: var(--font-pixel);
+    opacity: 0.8;
+}
+
+#challenge-host-screen, #challenge-join-screen {
+    padding: 10px 0; /* Smaller */
+}
+
+.challenge-id-box {
+    margin-top: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed var(--accent-fire);
+}
+
+#challenge-my-id {
+    font-size: 20px;
+    font-family: var(--font-main);
+    color: var(--accent-gold);
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+/* PvP Challenge Tooltip specific color */
+.challenge-tooltip {
+    border-color: var(--accent-fire) !important;
+}
+.challenge-tooltip .tooltip-name {
+    color: var(--accent-fire) !important;
+}

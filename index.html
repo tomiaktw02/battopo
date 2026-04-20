@@ -259,11 +259,56 @@
             </div>
         </div>
 
+        <!-- Challenge (PvP) Overlay -->
+        <div id="challenge-overlay" class="hidden">
+            <div id="challenge-modal">
+                <h2 data-i18n="ui_challenge_title">⚔️ 玩家挑戰 ⚔️</h2>
+                
+                <!-- Initial Menu State -->
+                <div id="challenge-menu">
+                    <p data-i18n="ui_challenge_desc">選擇您的行動：</p>
+                    <div id="challenge-choices">
+                        <div class="challenge-choice">
+                            <span class="challenge-emoji">📢</span>
+                            <span class="challenge-label" data-i18n="ui_host_challenge">開放挑戰</span>
+                            <span class="challenge-cmd">host</span>
+                        </div>
+                        <div class="challenge-choice">
+                            <span class="challenge-emoji">🔍</span>
+                            <span class="challenge-label" data-i18n="ui_join_challenge">挑戰對手</span>
+                            <span class="challenge-cmd">join</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Host State -->
+                <div id="challenge-host-screen" class="hidden">
+                    <p data-i18n="ui_waiting_challenge">等待挑戰中...</p>
+                    <div class="challenge-id-box">
+                        <span style="font-size: 12px; color: var(--text-muted);">Peer ID:</span>
+                        <div id="challenge-my-id">--------</div>
+                    </div>
+                </div>
+
+                <!-- Join (Pairing) State -->
+                <div id="challenge-join-screen" class="hidden">
+                    <p data-i18n="ui_pairing_challenge">正在進行配對...</p>
+                </div>
+
+                <!-- Back / Close Button -->
+                <div id="challenge-close-btn" class="feed-choice" style="width: 100px; margin: 20px auto 0; padding: 10px 4px;">
+                    <span class="feed-choice-name" data-i18n="ui_back">返回</span>
+                    <span class="feed-choice-cmd">close</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Global functional tooltip -->
         <div id="global-tooltip" class="hidden"></div>
     </div>
 
 
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="evolution_config.js?v=1.2"></script>
     <script src="ability_config.js?v=1.2"></script>
     <script src="pest_config.js?v=1.2"></script>

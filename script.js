@@ -526,6 +526,11 @@
         };
     }
 
+    // ---- PvP / PeerJS State ----
+    let pvpPeer = null;
+    let pvpConn = null;
+    let pvpMode = null; // 'host' or 'join'
+
     // ---- Helper: Build O(1) form lookup map from EVOLUTION_CONFIG (called lazily) ----
     function buildFormLookup() {
         _formLookupMap = new Map();
@@ -1601,6 +1606,7 @@
                     { id: 'clean',  emoji: '🚿', label: 'CLEAN',  desc: t('ui_clean_desc') },
                     { id: 'play',   emoji: '✌️', label: 'PLAY',   desc: t('ui_play_desc') },
                     { id: 'battle', emoji: '⚔️', label: 'BATTLE', desc: t('ui_battle_desc') },
+                    { id: 'challenge', emoji: '🥊', label: 'CHALLENGE', desc: t('ui_challenge_tooltip') },
                     { id: 'rename', emoji: '✏️', label: 'RENAME', desc: t('ui_rename_desc') },
                 ];
 
@@ -1924,6 +1930,13 @@
             handleCleaningInput(cmd);
             return;
         }
+        if (state.isChallengeMode) {
+            if (cmd === 'close') { speakCommand('close', 'other'); closeChallenge(); return; }
+            if (cmd === 'host') { hostChallenge(); return; }
+            if (cmd === 'join') { joinChallengePrompt(); return; }
+            if (state.isWaitingForJoinId) { confirmJoinChallenge(cmd); return; }
+            return;
+        }
 
 
         // Debug commands
@@ -2146,6 +2159,7 @@
             case 'clean':  speakCommand('clean', 'other');  doClean();  break;
             case 'play':   speakCommand('play', 'other');   doPlay();   break;
             case 'battle': speakCommand('battle', 'other'); doBattle(); break;
+            case 'challenge': speakCommand('challenge', 'other'); doChallenge(); break;
             case 'rename': speakCommand('rename', 'other'); doRename(); break;
             default:
                 addMsg(t('msg_cmd_unknown'), 'error');
@@ -2551,7 +2565,7 @@
         startBattle();
     }
 
-    async function startBattle(forcedOpponent = null) {
+    async function startBattle(forcedOpponent = null, forcedLog = null, localSide = 'p1') {
         const opponent = forcedOpponent || getRandomOpponent();
         if (!opponent) {
             addMsg(t('msg_battle_no_opponent'), 'error');
@@ -2586,15 +2600,35 @@
             img: opponent.img
         };
 
-        // 使用計算中心預算結果
-        const log = BattleEngine.simulate(pData, oData, state.battleDebug);
+        // 使用計算中心預算結果或傳入預算結果
+        const log = forcedLog || BattleEngine.simulate(pData, oData, state.battleDebug);
 
-        battleState = {
-            player: { ...pData, hp: pData.stats.hp, maxHp: pData.stats.hp },
-            opponent: { ...oData, hp: oData.stats.hp, maxHp: oData.stats.hp },
-            battleLog: log,
-            active: true
-        };
+        // 如果是 PVP (已傳入 forcedLog)，必須從日誌中讀取初始狀態，以確保同步
+        if (forcedLog) {
+            console.log(`[PVP] Starting battle with localSide: ${localSide}`);
+            const p1Snapshot = forcedLog.p1;
+            const p2Snapshot = forcedLog.p2;
+
+            // 映射視角：本地玩家對應 P1 還是 P2
+            const localSnapshot = (localSide === 'p1') ? p1Snapshot : p2Snapshot;
+            const remoteSnapshot = (localSide === 'p1') ? p2Snapshot : p1Snapshot;
+
+            battleState = {
+                player: { ...localSnapshot, hp: localSnapshot.stats.hp, maxHp: localSnapshot.stats.hp },
+                opponent: { ...remoteSnapshot, hp: remoteSnapshot.stats.hp, maxHp: remoteSnapshot.stats.hp },
+                battleLog: log,
+                localSide: localSide,
+                active: true
+            };
+        } else {
+            battleState = {
+                player: { ...pData, hp: pData.stats.hp, maxHp: pData.stats.hp },
+                opponent: { ...oData, hp: oData.stats.hp, maxHp: oData.stats.hp },
+                battleLog: log,
+                localSide: localSide,
+                active: true
+            };
+        }
 
         // UI Setup
         battleOverlay.classList.remove('hidden');
@@ -2668,23 +2702,26 @@
         const p = battleState.player;
         const o = battleState.opponent;
 
-        const val = (trigger.type === 'damage' || trigger.type === 'crit_fail' || trigger.type === 'weakness' || trigger.type === 'bonusDamage') 
-            ? (trigger.damage || 1) 
-            : (trigger.healVal || 1);
+        const isDamage = trigger.type === 'damage' || trigger.type === 'crit_fail' || trigger.type === 'weakness' || trigger.type === 'bonusDamage';
+        const isHeal = trigger.type === 'heal';
 
-        if (trigger.side === 'p1') {
-            if (trigger.type === 'heal') p.hp = Math.min(p.maxHp, p.hp + val);
+        if (!isDamage && !isHeal) return;
+
+        const val = isDamage ? (trigger.damage || 1) : (trigger.healVal || 1);
+
+        if (trigger.side === battleState.localSide) {
+            if (isHeal) p.hp = Math.min(p.maxHp, p.hp + val);
             else p.hp = Math.max(0, p.hp - val);
-        } else if (trigger.side === 'p2') {
-            if (trigger.type === 'heal') o.hp = Math.min(o.maxHp, o.hp + val);
+        } else {
+            if (isHeal) o.hp = Math.min(o.maxHp, o.hp + val);
             else o.hp = Math.max(0, o.hp - val);
         }
         updateBattleHP();
 
         // 加一點閃爍特效供傷害判定
-        const isDamage = (trigger.type === 'damage' || trigger.type === 'bonusDamage');
-        if (isDamage && val > 0 && (trigger.side === 'p1' || trigger.side === 'p2')) {
-            const dSide = trigger.side === 'p1' ? 'player' : 'opponent';
+        const isDamageFlash = (trigger.type === 'damage' || trigger.type === 'bonusDamage');
+        if (isDamageFlash && val > 0) {
+            const dSide = trigger.side === battleState.localSide ? 'player' : 'opponent';
             const el = $(`${dSide}-sprite`);
             if (el) {
                 el.classList.remove('damage-flash');
@@ -2729,14 +2766,15 @@
             await new Promise(r => setTimeout(r, 300));
         }
 
-        endBattle(battleState.player.hp > 0);
+        const isWin = battleState.player.hp > 0 && battleState.opponent.hp <= 0;
+        endBattle(isWin);
     }
 
     async function playAction(action) {
-        const attacker = action.attacker === 'p1' ? battleState.player : battleState.opponent;
-        const defender = action.defender === 'p1' ? battleState.player : battleState.opponent;
-        const aSide = action.attacker === 'p1' ? 'player' : 'opponent';
-        const dSide = action.defender === 'p1' ? 'player' : 'opponent';
+        const attacker = action.attacker === battleState.localSide ? battleState.player : battleState.opponent;
+        const defender = action.defender === battleState.localSide ? battleState.player : battleState.opponent;
+        const aSide = action.attacker === battleState.localSide ? 'player' : 'opponent';
+        const dSide = action.defender === battleState.localSide ? 'player' : 'opponent';
 
         if (action.resting) {
             // 處理休息狀態，不播放攻擊動畫
@@ -2927,6 +2965,13 @@
             actionPanel.classList.remove('hidden');
             battleState = null;
             renderActions(); // Restore buttons
+
+            // PVP cleanup
+            if (pvpConn) {
+                pvpConn.close();
+                pvpConn = null;
+            }
+            pvpMode = null;
         }, 1200);
     }
 
@@ -3097,5 +3142,218 @@
         init();
         cmdInput.focus();
     });
+
+    // ---- PvP / Challenge Logic ----
+
+    async function initPvP() {
+        if (pvpPeer) return;
+        
+        return new Promise((resolve, reject) => {
+            pvpPeer = new Peer();
+            pvpPeer.on('open', (id) => {
+                resolve();
+            });
+            pvpPeer.on('error', (err) => {
+                addMsg(t('msg_challenge_conn_err'), 'error');
+                reject(err);
+            });
+            pvpPeer.on('connection', (conn) => {
+                setupPvPConnection(conn);
+            });
+        });
+    }
+
+    function generateAlphaID(length = 6) {
+        const chars = 'abcdefghijklmnopqrstuvwxyz';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    function doChallenge() {
+        if (state.stage <= STAGE_BABY) {
+            addMsg(t('msg_challenge_stage_err'), 'warning');
+            return;
+        }
+        if (state.hunger < 2) {
+            addMsg(t('msg_battle_tired'), 'warning');
+            return;
+        }
+        
+        state.isChallengeMode = true;
+        document.getElementById('challenge-overlay').classList.remove('hidden');
+        showPvPScreen('menu');
+        cmdInput.placeholder = 'host / join / close';
+        addMsg(t('ui_challenge_desc'), 'info');
+        cmdInput.focus(); // Ensure keyboard shows
+    }
+
+    function showPvPScreen(screen) {
+        document.getElementById('challenge-menu').classList.toggle('hidden', screen !== 'menu');
+        document.getElementById('challenge-host-screen').classList.toggle('hidden', screen !== 'host');
+        document.getElementById('challenge-join-screen').classList.toggle('hidden', screen !== 'join');
+    }
+
+    function closeChallenge() {
+        state.isChallengeMode = false;
+        state.isWaitingForJoinId = false;
+        document.getElementById('challenge-overlay').classList.add('hidden');
+        cmdInput.placeholder = t('ui_cmd_prompt');
+        
+        if (pvpConn) {
+            pvpConn.close();
+            pvpConn = null;
+        }
+        pvpMode = null;
+    }
+
+    async function hostChallenge() {
+        if (pvpPeer) {
+            pvpPeer.destroy();
+            pvpPeer = null;
+        }
+
+        const customId = generateAlphaID(6);
+        pvpPeer = new Peer(customId);
+        
+        pvpPeer.on('open', (id) => {
+            pvpMode = 'host';
+            showPvPScreen('host');
+            document.getElementById('challenge-my-id').textContent = id;
+            addMsg(t('msg_challenge_host_start'), 'success');
+            speakCommand('host', 'other');
+        });
+
+        pvpPeer.on('connection', (conn) => {
+            setupPvPConnection(conn);
+        });
+
+        pvpPeer.on('error', (err) => {
+            if (err.type === 'id-taken') {
+                hostChallenge();
+            } else {
+                addMsg(t('msg_challenge_conn_err'), 'error');
+                closeChallenge();
+            }
+        });
+    }
+
+    function joinChallengePrompt() {
+        addMsg(t('msg_challenge_id_prompt'), 'info');
+        cmdInput.placeholder = '...';
+        state.isWaitingForJoinId = true;
+    }
+
+    async function confirmJoinChallenge(id) {
+        state.isWaitingForJoinId = false;
+        const normalizedId = id.toLowerCase().trim();
+        
+        if (!/^[a-z]+$/.test(normalizedId)) {
+            addMsg(t('msg_challenge_conn_err'), 'error');
+            cmdInput.placeholder = 'host / join / close';
+            return;
+        }
+
+        if (!pvpPeer) {
+            pvpPeer = new Peer();
+            await new Promise(r => pvpPeer.on('open', r));
+        }
+        
+        pvpMode = 'join';
+        showPvPScreen('join');
+        addMsg(t('ui_pairing_challenge'), 'info');
+        speakCommand('join', 'other');
+
+        const conn = pvpPeer.connect(normalizedId);
+        setupPvPConnection(conn);
+    }
+
+    function setupPvPConnection(conn) {
+        pvpConn = conn;
+        
+        conn.on('open', () => {
+            console.log('Connected to peer:', conn.peer);
+            
+            // Host sends its info to the joiner first
+            if (pvpMode === 'host') {
+                conn.send({
+                    type: 'HOST_INFO',
+                    pet: serializePet()
+                });
+            }
+        });
+
+        conn.on('data', (data) => {
+            if (data.type === 'HOST_INFO' && pvpMode === 'join') {
+                // Joiner receives host info, sends its own pet back to host
+                conn.send({
+                    type: 'JOIN_INFO',
+                    pet: serializePet()
+                });
+            } 
+            else if (data.type === 'JOIN_INFO' && pvpMode === 'host') {
+                // Host receives joiner info, calculates the battle, and sends final start
+                const p1Data = serializePet(); // Host
+                const p2Data = data.pet;      // Joiner
+                
+                const log = BattleEngine.simulate(p1Data, p2Data, state.battleDebug);
+                
+                conn.send({
+                    type: 'BATTLE_START',
+                    hostPet: p1Data,
+                    battleLog: log
+                });
+                
+                startPvPBattle(p1Data, p2Data, log, 'p1');
+            }
+            else if (data.type === 'BATTLE_START' && pvpMode === 'join') {
+                // Joiner receives the definitive log and host info from the host
+                const p1Data = data.hostPet;  // Host
+                const p2Data = serializePet(); // Joiner
+                startPvPBattle(p1Data, p2Data, data.battleLog, 'p2');
+            }
+        });
+
+        conn.on('close', () => {
+            addMsg('對手已斷開連線', 'warning');
+            closeChallenge();
+        });
+        
+        conn.on('error', () => {
+            addMsg(t('msg_challenge_conn_err'), 'error');
+            closeChallenge();
+        });
+    }
+
+    function serializePet() {
+        const pInfo = getFormInfo(state.currentFormId);
+        return {
+            id: state.currentFormId,
+            name: getPetName(),
+            ability: pInfo.ability,
+            stats: { ...state.stats },
+            img: getPetImg(),
+            emoji: getPetEmoji()
+        };
+    }
+
+    function startPvPBattle(p1Data, p2Data, battleLog, localSide) {
+        // Deduct hunger for PVP
+        state.hunger -= 1;
+        save();
+        renderStats();
+
+        // 僅隱藏介面，不中斷連線 (保留至戰鬥結束再斷開)
+        state.isChallengeMode = false;
+        state.isWaitingForJoinId = false;
+        document.getElementById('challenge-overlay').classList.add('hidden');
+        cmdInput.placeholder = t('ui_cmd_prompt');
+        
+        // Map back to opponent data for startBattle signature
+        const opponentData = (localSide === 'p1') ? p2Data : p1Data;
+        startBattle(opponentData, battleLog, localSide);
+    }
 
 })();
