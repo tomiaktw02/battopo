@@ -145,7 +145,7 @@ const EVOLUTION_CONFIG = {
                 img: 'images/pets/junk_boar.png',
                 condition: 'happy_high',
                 description: '快樂度高（=6）',
-                stats: { hp: 5, atk: 14, def: 19, spd: 8 },
+                stats: { hp: 5, atk: 13, def: 19, spd: 8 },
                 ability: '拖行裝甲'
             },
             {
@@ -347,7 +347,7 @@ const EVOLUTION_CONFIG = {
                 img: 'images/pets/dirty_lion.png',
                 condition: 'clean_low',
                 description: '清潔度低',
-                stats: { hp: 5, atk: 18, def: 17, spd: 5 },
+                stats: { hp: 5, atk: 16, def: 17, spd: 5 },
                 ability: '重甲解離'
             },
             {

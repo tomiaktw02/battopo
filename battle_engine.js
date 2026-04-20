@@ -65,7 +65,7 @@ const BattleEngine = (() => {
             extraRolls.push(roll(20), roll(20));
             hitRoll = Math.max(hitRoll, ...extraRolls);
         } else if (mode === 'sum') {
-            const r2 = roll(15);
+            const r2 = roll(11);
             extraRolls.push(r2);
             hitRoll = hitRoll + r2;
         }
@@ -101,6 +101,7 @@ const BattleEngine = (() => {
                 hitCount: 0,
                 consecutiveFirstMoves: 0,
                 consecutiveBlocks: 0,
+                consecutiveMisses: 0,
                 abilityTriggerCount: 0,
                 dealtDamageThisBattle: false,
                 firstDealDamageTriggered: false,
@@ -209,7 +210,7 @@ const BattleEngine = (() => {
                     if (ab.val === 'advantage') modeDesc = _t('log_adv');
                     else if (ab.val === 'disadvantage') modeDesc = _t('log_dis');
                     else if (ab.val === 'sum') modeDesc = _t('log_sum');
-                    
+
                     const modeMsg = _t('battle_ability_mode', target.name, modeDesc);
                     if (actionRef) actionRef.triggers.push({ type: 'hitRollMode', name: modeAbilityName, msg: modeMsg });
                     break;
@@ -313,8 +314,9 @@ const BattleEngine = (() => {
                 // 每回合、每次行動前重置模式
                 attacker.hitRollMode = 'normal';
 
+                // 將破防判定恢復為原本的連續兩次格擋必定破防
                 const isGuardBroken = (defender.consecutiveBlocks >= 2);
-                
+
                 const action = {
                     attacker: aSide,
                     defender: dSide,
@@ -326,14 +328,26 @@ const BattleEngine = (() => {
                 // 攻擊前判定 (用於設定優劣勢等模式)
                 triggerAbilities(attacker, defender, 'beforeAttack', {}, null, action);
 
-                const result = calculateAttack(attacker, defender);
-                
+                let result;
+                // 連續兩次未命中後，下一次必定會因為用力過猛而致命失敗
+                if (attacker.consecutiveMisses >= 2) {
+                    result = {
+                        hit: false,
+                        rawHitRoll: 20,
+                        hitRoll: 20,
+                        extraRolls: [],
+                        hitRollMode: attacker.hitRollMode,
+                        currentAtk: attacker.effStats.atk
+                    };
+                } else {
+                    result = calculateAttack(attacker, defender);
+                }
+
                 // 如果處於破防狀態，強行修改結果為未格擋
                 if (isGuardBroken && result.hit) {
                     result.blocked = false;
                     result.guardBroken = true;
                 }
-
 
                 // 檢查是否正在休息
                 if (attacker.isResting) {
@@ -347,17 +361,22 @@ const BattleEngine = (() => {
                 // [Bug Fix] 攻擊致命失敗：加入名稱到訊息中以確保 UI 同步
                 if (result.rawHitRoll === 20) {
                     attacker.hp -= 1;
-                    const failMsg = debugMode 
+                    attacker.consecutiveMisses = 0; // 重置
+                    const failMsg = debugMode
                         ? _t('battle_crit_fail_debug', attacker.name)
                         : _t('battle_crit_fail_msg', attacker.name);
                     action.triggers.push({ type: 'crit_fail', side: aSide, name: _t('battle_crit_fail_name'), msg: failMsg });
                     if (attacker.hp <= 0) return action;
+                } else if (!result.hit) {
+                    // 一般未命中
+                    attacker.consecutiveMisses++;
                 }
 
                 // 攻擊時判定
                 triggerAbilities(attacker, defender, 'onAttack', result, null, action);
 
                 if (result.hit) {
+                    attacker.consecutiveMisses = 0; // 命中對手，重置未命中計數
                     attacker.hitCount++;
                     // 基礎命中傷害
                     const baseDmg = (result.blocked) ? 0 : 1;
@@ -384,7 +403,7 @@ const BattleEngine = (() => {
 
                     // 命中後觸發 (包含加傷或是狀態修正)
                     triggerAbilities(attacker, defender, 'onHit', result, null, action);
-                    
+
                     // 同步最終 result 供後續判斷用
                     Object.assign(action, result);
 
@@ -438,7 +457,7 @@ const BattleEngine = (() => {
 
         log.winner = s1.hp > 0 ? 'p1' : 'p2';
         log.finalHP = { p1: s1.hp, p2: s2.hp };
-        
+
         return log;
     }
 
@@ -467,7 +486,7 @@ const BattleEngine = (() => {
         log.turns.forEach(tu => {
             lines.push(`${_t('log_turn_header', tu.turn)}`);
             lines.push(`${_t('log_spd', log.p1.name, tu.p1SpdRoll, log.p2.name, tu.p2SpdRoll)}`);
-            
+
             tu.actions.forEach(a => {
                 if (a.type === 'turnStart') {
                     a.triggers.forEach(tr => lines.push(`${_t('log_start', tr.msg)}`));
@@ -486,8 +505,8 @@ const BattleEngine = (() => {
                             if (a.hitRollMode === 'advantage') modeName = _t('log_adv');
                             else if (a.hitRollMode === 'disadvantage') modeName = _t('log_dis');
                             else if (a.hitRollMode === 'sum') modeName = _t('log_sum');
-                            
-                            rollMsg = _t('log_roll_info', a.hitRoll, modeName, [a.hitRoll - (a.hitRollMode==='sum'? a.extraRolls[0] : 0), ...a.extraRolls].join(', '));
+
+                            rollMsg = _t('log_roll_info', a.hitRoll, modeName, [a.hitRoll - (a.hitRollMode === 'sum' ? a.extraRolls[0] : 0), ...a.extraRolls].join(', '));
                         }
                         lines.push(`${_t('log_atk_roll', rollMsg, a.currentAtk, a.hit ? _t('ui_hit') : _t('ui_miss'))}`);
                         if (a.hit) {

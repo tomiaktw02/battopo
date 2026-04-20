@@ -37,7 +37,7 @@ const ABILITY_CONFIG = {
         effectType: 'statMod',
         target: 'opponent',
         stat: 'atk',
-        val: -10,
+        val: -8,
         duration: 'thisTurn'
     },
     '灼燒之拳': {
@@ -197,8 +197,8 @@ const ABILITY_CONFIG = {
         triggerType: 'turnEnd',
         effectType: 'multiEffect',
         effects: [
-            { nameKey: 'ability_rageshell_name', effectType: 'statModPermanent', stat: 'atk', val: 1, target: 'self' },
-            { nameKey: 'ability_rageshell_name', effectType: 'statModPermanent', stat: 'def', val: -8, target: 'self' }
+            { nameKey: 'ability_rageshell_name', effectType: 'statModPermanent', stat: 'atk', val: -1, target: 'self' },
+            { nameKey: 'ability_rageshell_name', effectType: 'statModPermanent', stat: 'def', val: -4, target: 'self' }
         ]
     },
     '飄渺虛甲': {
