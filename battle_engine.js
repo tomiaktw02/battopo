@@ -212,7 +212,7 @@ const BattleEngine = (() => {
                     else if (ab.val === 'sum') modeDesc = _t('log_sum');
 
                     const modeMsg = _t('battle_ability_mode', target.name, modeDesc);
-                    if (actionRef) actionRef.triggers.push({ type: 'hitRollMode', name: modeAbilityName, msg: modeMsg });
+                    // if (actionRef) actionRef.triggers.push({ type: 'hitRollMode', name: modeAbilityName, msg: modeMsg });
                     break;
 
                 case 'multiEffect':
