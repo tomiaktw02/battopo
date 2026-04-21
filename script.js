@@ -397,6 +397,7 @@
     // type: 'feed' | 'rps' | 'pest' | 'other'
     // In partial mode (1), only feed/rps/pest types are spoken
     function speakCommand(text, type) {
+        cmdInput.focus(); // Keep focus when clicking icons/making sounds
         const mode = getSoundMode();
         if (mode === 0) return; // fully muted
         if (mode === 1) {
@@ -523,6 +524,8 @@
             currentPest: null,       // NEW: current pest to identify
             accent: 'us',            // NEW: voice accent selection
             collectionTab: 0,        // NEW: 0=bestiary, 1=food, 2=pests
+            isChallengeMode: false,  // NEW: tracking if currently in PvP menu
+            isWaitingForJoinId: false // NEW: tracking if waiting for peer id input
         };
     }
 
@@ -1035,9 +1038,12 @@
         state.isHofMode = false;
         state.isDexMode = false;
         state.isCleaningMode = false;
-
+        state.isChallengeMode = false;
+        state.isWaitingForJoinId = false;
 
         // Ensure persistent data fields exist
+        if (state.accent === undefined) state.accent = 'us';
+        if (state.collectionTab === undefined) state.collectionTab = 0;
         if (state.feedCount === undefined) state.feedCount = { red: 0, orange: 0, light: 0, dark: 0, green: 0 };
         // Migrate old counts if necessary
         if (state.feedCount.apple !== undefined) {
@@ -1935,6 +1941,7 @@
             if (cmd === 'host') { hostChallenge(); return; }
             if (cmd === 'join') { joinChallengePrompt(); return; }
             if (state.isWaitingForJoinId) { confirmJoinChallenge(cmd); return; }
+            addMsg(t('msg_challenge_invalid') || '❌ 無效指令。請輸入 host, join 或 close。', 'error');
             return;
         }
 
@@ -3062,6 +3069,18 @@
     }
 
     // ---- Event Listeners ----
+    document.addEventListener('click', (e) => {
+        // Keep focus on cmdInput unless clicking an input, textarea, or selecting text
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            const cmdInput = document.getElementById('command-input');
+            if (cmdInput && document.activeElement !== cmdInput) {
+                if (!window.getSelection().toString()) {
+                    cmdInput.focus();
+                }
+            }
+        }
+    });
+
     cmdInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const val = cmdInput.value;
@@ -3187,6 +3206,7 @@
         showPvPScreen('menu');
         cmdInput.placeholder = 'host / join / close';
         addMsg(t('ui_challenge_desc'), 'info');
+        save();
         cmdInput.focus(); // Ensure keyboard shows
     }
 
@@ -3207,6 +3227,7 @@
             pvpConn = null;
         }
         pvpMode = null;
+        save();
     }
 
     async function hostChallenge() {
