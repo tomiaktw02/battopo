@@ -1941,7 +1941,7 @@
             if (cmd === 'host') { hostChallenge(); return; }
             if (cmd === 'join') { joinChallengePrompt(); return; }
             if (state.isWaitingForJoinId) { confirmJoinChallenge(cmd); return; }
-            addMsg(t('msg_challenge_invalid') || '❌ 無效指令。請輸入 host, join 或 close。', 'error');
+            addMsg(t('msg_challenge_invalid'), 'error');
             return;
         }
 
@@ -2973,12 +2973,10 @@
             battleState = null;
             renderActions(); // Restore buttons
 
-            // PVP cleanup
-            if (pvpConn) {
-                pvpConn.close();
-                pvpConn = null;
+            // PVP cleanup — only if still connected
+            if (pvpConn || pvpPeer) {
+                cleanupPvPConnection();
             }
-            pvpMode = null;
         }, 1200);
     }
 
@@ -3164,24 +3162,6 @@
 
     // ---- PvP / Challenge Logic ----
 
-    async function initPvP() {
-        if (pvpPeer) return;
-        
-        return new Promise((resolve, reject) => {
-            pvpPeer = new Peer();
-            pvpPeer.on('open', (id) => {
-                resolve();
-            });
-            pvpPeer.on('error', (err) => {
-                addMsg(t('msg_challenge_conn_err'), 'error');
-                reject(err);
-            });
-            pvpPeer.on('connection', (conn) => {
-                setupPvPConnection(conn);
-            });
-        });
-    }
-
     function generateAlphaID(length = 6) {
         const chars = 'abcdefghijklmnopqrstuvwxyz';
         let result = '';
@@ -3216,25 +3196,31 @@
         document.getElementById('challenge-join-screen').classList.toggle('hidden', screen !== 'join');
     }
 
+    // Silently tear down PeerJS connection without touching UI state
+    function cleanupPvPConnection() {
+        if (pvpConn) {
+            pvpConn.close();
+            pvpConn = null;
+        }
+        if (pvpPeer) {
+            pvpPeer.destroy();
+            pvpPeer = null;
+        }
+        pvpMode = null;
+    }
+
     function closeChallenge() {
         state.isChallengeMode = false;
         state.isWaitingForJoinId = false;
         document.getElementById('challenge-overlay').classList.add('hidden');
         cmdInput.placeholder = t('ui_cmd_prompt');
-        
-        if (pvpConn) {
-            pvpConn.close();
-            pvpConn = null;
-        }
-        pvpMode = null;
+        cleanupPvPConnection();
         save();
     }
 
     async function hostChallenge() {
-        if (pvpPeer) {
-            pvpPeer.destroy();
-            pvpPeer = null;
-        }
+        // Clean up any existing connection before re-hosting
+        cleanupPvPConnection();
 
         const customId = generateAlphaID(6);
         pvpPeer = new Peer(customId);
@@ -3255,7 +3241,9 @@
             if (err.type === 'id-taken') {
                 hostChallenge();
             } else {
-                addMsg(t('msg_challenge_conn_err'), 'error');
+                if (state.isChallengeMode || (battleState && battleState.active)) {
+                    addMsg(t('msg_challenge_conn_err'), 'error');
+                }
                 closeChallenge();
             }
         });
@@ -3279,7 +3267,25 @@
 
         if (!pvpPeer) {
             pvpPeer = new Peer();
-            await new Promise(r => pvpPeer.on('open', r));
+
+            // Wait for open with timeout + error handling
+            try {
+                await Promise.race([
+                    new Promise((resolve, reject) => {
+                        pvpPeer.on('open', resolve);
+                        pvpPeer.on('error', reject);
+                    }),
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('timeout')), 10000)
+                    )
+                ]);
+            } catch (err) {
+                console.error('[PvP] Peer open failed:', err);
+                addMsg(t('msg_challenge_conn_err'), 'error');
+                cleanupPvPConnection();
+                cmdInput.placeholder = 'host / join / close';
+                return;
+            }
         }
         
         pvpMode = 'join';
@@ -3289,6 +3295,14 @@
 
         const conn = pvpPeer.connect(normalizedId);
         setupPvPConnection(conn);
+    }
+
+    function isValidPetData(pet) {
+        return pet && pet.id && pet.name && pet.stats
+            && typeof pet.stats.hp === 'number'
+            && typeof pet.stats.atk === 'number'
+            && typeof pet.stats.def === 'number'
+            && typeof pet.stats.spd === 'number';
     }
 
     function setupPvPConnection(conn) {
@@ -3315,6 +3329,13 @@
                 });
             } 
             else if (data.type === 'JOIN_INFO' && pvpMode === 'host') {
+                // Validate joiner pet data before using it
+                if (!isValidPetData(data.pet)) {
+                    addMsg(t('msg_challenge_conn_err'), 'error');
+                    closeChallenge();
+                    return;
+                }
+
                 // Host receives joiner info, calculates the battle, and sends final start
                 const p1Data = serializePet(); // Host
                 const p2Data = data.pet;      // Joiner
@@ -3338,18 +3359,30 @@
         });
 
         conn.on('close', () => {
-            addMsg('對手已斷開連線', 'warning');
-            closeChallenge();
+            // Only show warning if battle is still actively playing
+            if (battleState && battleState.active) {
+                addMsg(t('msg_challenge_disconnected'), 'warning');
+            }
+            // Avoid double-cleanup: only tear down if still connected
+            if (pvpConn || pvpPeer) {
+                cleanupPvPConnection();
+            }
         });
         
         conn.on('error', () => {
-            addMsg(t('msg_challenge_conn_err'), 'error');
+            if (state.isChallengeMode || (battleState && battleState.active)) {
+                addMsg(t('msg_challenge_conn_err'), 'error');
+            }
             closeChallenge();
         });
     }
 
     function serializePet() {
         const pInfo = getFormInfo(state.currentFormId);
+        if (!pInfo) {
+            console.error('[PvP] serializePet: form info not found for', state.currentFormId);
+            return null;
+        }
         return {
             id: state.currentFormId,
             name: getPetName(),
@@ -3361,8 +3394,8 @@
     }
 
     function startPvPBattle(p1Data, p2Data, battleLog, localSide) {
-        // Deduct hunger for PVP
-        state.hunger -= 1;
+        // Deduct hunger for PVP (clamp to 0 in case of natural decay during wait)
+        state.hunger = Math.max(0, state.hunger - 1);
         save();
         renderStats();
 

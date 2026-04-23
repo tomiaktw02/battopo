@@ -250,6 +250,8 @@ const LANGUAGES = {
         msg_challenge_id_prompt: '⚔️ 請輸入對方的對戰 ID (純小寫英文):',
         msg_challenge_conn_err: '❌ 連線失敗，請檢查 ID 是否正確或網路狀態。',
         msg_challenge_host_start: '📢 已開放挑戰！請將 ID 提供給對手。',
+        msg_challenge_disconnected: '⚠️ 對手已斷開連線。',
+        msg_challenge_invalid: '❌ 無效指令。請輸入 host, join 或 close。',
 
         msg_debug_egg: '🥚 蛋階段無法執行此操作！',
         msg_debug_stat: '🛠️ [DEBUG] {0} 已設定為 {1}',
@@ -753,6 +755,8 @@ const LANGUAGES = {
         msg_challenge_id_prompt: '⚔️ Please enter opponent\'s Peer ID (lowercase only):',
         msg_challenge_conn_err: '❌ Connection failed. Check ID or network status.',
         msg_challenge_host_start: '📢 Hosting started! Share your ID with the opponent.',
+        msg_challenge_disconnected: '⚠️ Opponent has disconnected.',
+        msg_challenge_invalid: '❌ Invalid command. Please enter host, join, or close.',
 
         msg_debug_egg: '🥚 Cannot perform this action in egg stage!',
         msg_debug_stat: '🛠️ [DEBUG] {0} set to {1}',
@@ -1440,6 +1444,8 @@ const LANGUAGES = {
         msg_challenge_id_prompt: '⚔️ 相手の対戦IDを入力してください（小文字のみ）:',
         msg_challenge_conn_err: '❌ 接続に失敗しました。IDまたはネットワーク設定を確認してください。',
         msg_challenge_host_start: '📢 対戦の募集を開始しました！相手にIDを教えてください。',
+        msg_challenge_disconnected: '⚠️ 対戦相手が切断しました。',
+        msg_challenge_invalid: '❌ 無効なコマンドです。host、join、または close を入力してください。',
         log_title: '   BATTOPO バトルログ',
         log_vs: '対戦: {0} ({1}HP) vs {2} ({3}HP)',
         log_winner: '最終勝者: {0}',
