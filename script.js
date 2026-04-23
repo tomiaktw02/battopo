@@ -534,6 +534,35 @@
     let pvpConn = null;
     let pvpMode = null; // 'host' or 'join'
 
+    // ICE servers for WebRTC NAT traversal (STUN + TURN relay)
+    const PVP_ICE_CONFIG = {
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ]
+        }
+    };
+
+    function createPeer(customId) {
+        return customId ? new Peer(customId, PVP_ICE_CONFIG) : new Peer(PVP_ICE_CONFIG);
+    }
+
     // ---- Helper: Build O(1) form lookup map from EVOLUTION_CONFIG (called lazily) ----
     function buildFormLookup() {
         _formLookupMap = new Map();
@@ -3223,7 +3252,7 @@
         cleanupPvPConnection();
 
         const customId = generateAlphaID(6);
-        pvpPeer = new Peer(customId);
+        pvpPeer = createPeer(customId);
         
         pvpPeer.on('open', (id) => {
             pvpMode = 'host';
@@ -3266,7 +3295,7 @@
         }
 
         if (!pvpPeer) {
-            pvpPeer = new Peer();
+            pvpPeer = createPeer();
 
             // Wait for open with timeout + error handling
             try {
