@@ -1320,6 +1320,15 @@
             case 'default':
                 return true;
             default:
+                // Handle 'most_X' conditions (e.g. 'most_red' for hellfire_turtle)
+                if (condition.startsWith('most_')) {
+                    const fruitId = condition.replace('most_', '');
+                    const fc = state.feedCount;
+                    const myCount = fc[fruitId] || 0;
+                    if (myCount <= 0) return false;
+                    const maxCount = Math.max(...Object.values(fc));
+                    return myCount === maxCount;
+                }
                 return false;
         }
     }
