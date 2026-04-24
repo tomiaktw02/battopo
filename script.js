@@ -534,49 +534,17 @@
     let pvpConn = null;
     let pvpMode = null; // 'host' or 'join'
 
-    // ICE servers for WebRTC NAT traversal
-    // To enable cross-network PvP (PC↔Mobile on different networks), register a free
-    // metered.ca account at https://dashboard.metered.ca/signup and paste your API key below.
-    // Free tier provides 20GB/month — more than enough for this game.
-    const METERED_API_KEY = 'a34ea3feb482ee2b4fce2345c82e2307f528';
-    const METERED_APP_NAME = 'battopo'; // Your metered.ca app name
-    let _cachedIceServers = null;
-
-    async function fetchIceServers() {
-        if (_cachedIceServers) return _cachedIceServers;
-
-        // If metered.ca API key is configured, fetch dynamic TURN credentials
-        if (METERED_API_KEY) {
-            try {
-                const resp = await fetch(
-                    `https://${METERED_APP_NAME}.metered.live/api/v1/turn/credentials?apiKey=${METERED_API_KEY}`
-                );
-                if (!resp.ok) throw new Error('ICE fetch HTTP ' + resp.status);
-                _cachedIceServers = await resp.json();
-                console.log('[PvP] TURN servers fetched:', _cachedIceServers.length, 'entries');
-                return _cachedIceServers;
-            } catch (err) {
-                console.warn('[PvP] Failed to fetch TURN servers:', err);
-            }
-        }
-
-        // Fallback: STUN only (works on same WiFi, may fail across different networks)
-        console.warn('[PvP] Using STUN-only mode. Cross-network PvP may not work.');
-        _cachedIceServers = [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' }
-        ];
-        return _cachedIceServers;
-    }
-
     async function createPeer(customId) {
-        const iceServers = await fetchIceServers();
-        const opts = { debug: 2, config: { iceServers } };
+        const opts = {
+            debug: 0,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                ]
+            }
+        };
         const peer = customId ? new Peer(customId, opts) : new Peer(opts);
-        console.log('[PvP] Peer created' + (customId ? ' with ID: ' + customId : ' (anonymous)') + ', waiting for open...');
 
         // Wait for the peer to fully register with the signaling server
         await new Promise((resolve, reject) => {
@@ -589,7 +557,7 @@
                 if (!peer.open) reject(err);
             });
             setTimeout(() => {
-                if (!peer.open) reject(new Error('PeerJS signaling server timeout (10s)'));
+                if (!peer.open) reject(new Error('PeerJS signaling server timeout'));
             }, 10000);
         });
 
@@ -3298,11 +3266,11 @@
             pvpPeer = await createPeer(customId);
         } catch (err) {
             console.error('[PvP] Host peer creation failed:', err);
-            const errMsg = (err && err.type) || (err && err.message) || String(err);
-            addMsg(`❌ [DEBUG] Host 建立失敗: ${errMsg}`, 'error');
-            if (errMsg.includes('taken') || errMsg.includes('unavailable-id')) {
+            const errType = (err && err.type) || '';
+            if (errType === 'unavailable-id' || errType === 'id-taken') {
                 return hostChallenge();
             }
+            addMsg(t('msg_challenge_conn_err'), 'error');
             closeChallenge();
             return;
         }
@@ -3352,8 +3320,7 @@
                 pvpPeer = await createPeer();
             } catch (err) {
                 console.error('[PvP] Joiner peer creation failed:', err);
-                const errMsg = (err && err.type) || (err && err.message) || String(err);
-                addMsg(`❌ [DEBUG] Join 建立失敗: ${errMsg}`, 'error');
+                addMsg(t('msg_challenge_conn_err'), 'error');
                 cleanupPvPConnection();
                 cmdInput.placeholder = 'host / join / close';
                 return;
@@ -3398,7 +3365,7 @@
                 addMsg(t('msg_challenge_conn_err'), 'error');
                 closeChallenge();
             }
-        }, 20000);
+        }, 30000);
 
         const trySendHostInfo = () => {
             if (pvpMode === 'host' && !hostInfoSent) {

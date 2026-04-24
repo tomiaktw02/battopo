@@ -74,13 +74,13 @@ const LANGUAGES = {
         ui_confirm: '確認',
         ui_cancel: '取消',
         ui_challenge_title: '⚔️ 玩家挑戰 ⚔️',
-        ui_challenge_desc: '選擇您的行動：',
+        ui_challenge_desc: '選擇您的行動（雙方需連接相同 WiFi）：',
         ui_host_challenge: '開放挑戰',
         ui_join_challenge: '挑戰對手',
         ui_waiting_challenge: '等待挑戰中...',
         ui_pairing_challenge: '正在進行配對...',
         ui_challenge_icon: '對戰',
-        ui_challenge_tooltip: '邀請好友進行點對點對戰 (指令: challenge)',
+        ui_challenge_tooltip: '邀請好友進行點對點對戰 (需在同一 WiFi 下)',
 
         // Food Names
         food_redbean: '紅豆',
@@ -573,13 +573,13 @@ const LANGUAGES = {
         ui_confirm: 'Confirm',
         ui_cancel: 'Cancel',
         ui_challenge_title: '⚔️ Player Challenge ⚔️',
-        ui_challenge_desc: 'Choose your action:',
+        ui_challenge_desc: 'Choose your action (Both devices must be on the same WiFi):',
         ui_host_challenge: 'Host Match',
         ui_join_challenge: 'Join Match',
         ui_waiting_challenge: 'Waiting for challenger...',
         ui_pairing_challenge: 'Pairing in progress...',
         ui_challenge_icon: 'PVP',
-        ui_challenge_tooltip: 'Invite friends for P2P battle (Command: challenge)',
+        ui_challenge_tooltip: 'Invite friends for P2P battle (Same WiFi required)',
 
         // Food Names
         food_redbean: 'Red Bean',
@@ -1433,13 +1433,13 @@ const LANGUAGES = {
 
 
         ui_challenge_title: '⚔️ プレイヤー対戦 ⚔️',
-        ui_challenge_desc: 'アクションを選択してください：',
+        ui_challenge_desc: 'アクションを選択してください（両端末が同じWiFiに接続する必要があります）：',
         ui_host_challenge: '対戦を募集',
         ui_join_challenge: '対戦に参加',
         ui_waiting_challenge: '対戦相手を待っています...',
         ui_pairing_challenge: 'ペアリング中...',
         ui_challenge_icon: '対戦',
-        ui_challenge_tooltip: 'フレンドをP2P対戦に招待する (コマンド: challenge)',
+        ui_challenge_tooltip: 'フレンドをP2P対戦に招待する (同じWiFi環境が必要)',
         msg_challenge_stage_err: '👶 ペットがまだ幼すぎるため（タマゴまたはベビー）、プレイヤー対戦はできません！',
         msg_challenge_id_prompt: '⚔️ 相手の対戦IDを入力してください（小文字のみ）:',
         msg_challenge_conn_err: '❌ 接続に失敗しました。IDまたはネットワーク設定を確認してください。',
