@@ -574,7 +574,7 @@
 
     async function createPeer(customId) {
         const iceServers = await fetchIceServers();
-        const opts = { debug: 1, config: { iceServers } };
+        const opts = { debug: 2, config: { iceServers } };
         const peer = customId ? new Peer(customId, opts) : new Peer(opts);
         console.log('[PvP] Peer created' + (customId ? ' with ID: ' + customId : ' (anonymous)') + ', waiting for open...');
 
@@ -585,11 +585,11 @@
                 resolve();
             });
             peer.on('error', (err) => {
-                // Only reject for fatal connection errors during startup
+                console.error('[PvP] Peer error during startup:', err.type, err.message || err);
                 if (!peer.open) reject(err);
             });
             setTimeout(() => {
-                if (!peer.open) reject(new Error('Peer open timeout'));
+                if (!peer.open) reject(new Error('PeerJS signaling server timeout (10s)'));
             }, 10000);
         });
 
@@ -3298,11 +3298,11 @@
             pvpPeer = await createPeer(customId);
         } catch (err) {
             console.error('[PvP] Host peer creation failed:', err);
-            if (err.message && err.message.includes('taken')) {
-                // ID collision — retry with a new ID
+            const errMsg = (err && err.type) || (err && err.message) || String(err);
+            addMsg(`❌ [DEBUG] Host 建立失敗: ${errMsg}`, 'error');
+            if (errMsg.includes('taken') || errMsg.includes('unavailable-id')) {
                 return hostChallenge();
             }
-            addMsg(t('msg_challenge_conn_err'), 'error');
             closeChallenge();
             return;
         }
@@ -3352,7 +3352,8 @@
                 pvpPeer = await createPeer();
             } catch (err) {
                 console.error('[PvP] Joiner peer creation failed:', err);
-                addMsg(t('msg_challenge_conn_err'), 'error');
+                const errMsg = (err && err.type) || (err && err.message) || String(err);
+                addMsg(`❌ [DEBUG] Join 建立失敗: ${errMsg}`, 'error');
                 cleanupPvPConnection();
                 cmdInput.placeholder = 'host / join / close';
                 return;
