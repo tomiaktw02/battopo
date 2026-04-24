@@ -534,33 +534,66 @@
     let pvpConn = null;
     let pvpMode = null; // 'host' or 'join'
 
-    // ICE servers for WebRTC NAT traversal (STUN + TURN relay)
-    const PVP_ICE_CONFIG = {
-        config: {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                {
-                    urls: 'turn:openrelay.metered.ca:80',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                },
-                {
-                    urls: 'turn:openrelay.metered.ca:443',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                },
-                {
-                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                }
-            ]
-        }
-    };
+    // ICE servers for WebRTC NAT traversal
+    // To enable cross-network PvP (PC↔Mobile on different networks), register a free
+    // metered.ca account at https://dashboard.metered.ca/signup and paste your API key below.
+    // Free tier provides 20GB/month — more than enough for this game.
+    const METERED_API_KEY = 'a34ea3feb482ee2b4fce2345c82e2307f528';
+    const METERED_APP_NAME = 'battopo'; // Your metered.ca app name
+    let _cachedIceServers = null;
 
-    function createPeer(customId) {
-        return customId ? new Peer(customId, PVP_ICE_CONFIG) : new Peer(PVP_ICE_CONFIG);
+    async function fetchIceServers() {
+        if (_cachedIceServers) return _cachedIceServers;
+
+        // If metered.ca API key is configured, fetch dynamic TURN credentials
+        if (METERED_API_KEY) {
+            try {
+                const resp = await fetch(
+                    `https://${METERED_APP_NAME}.metered.live/api/v1/turn/credentials?apiKey=${METERED_API_KEY}`
+                );
+                if (!resp.ok) throw new Error('ICE fetch HTTP ' + resp.status);
+                _cachedIceServers = await resp.json();
+                console.log('[PvP] TURN servers fetched:', _cachedIceServers.length, 'entries');
+                return _cachedIceServers;
+            } catch (err) {
+                console.warn('[PvP] Failed to fetch TURN servers:', err);
+            }
+        }
+
+        // Fallback: STUN only (works on same WiFi, may fail across different networks)
+        console.warn('[PvP] Using STUN-only mode. Cross-network PvP may not work.');
+        _cachedIceServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' }
+        ];
+        return _cachedIceServers;
+    }
+
+    async function createPeer(customId) {
+        const iceServers = await fetchIceServers();
+        const opts = { debug: 1, config: { iceServers } };
+        const peer = customId ? new Peer(customId, opts) : new Peer(opts);
+        console.log('[PvP] Peer created' + (customId ? ' with ID: ' + customId : ' (anonymous)') + ', waiting for open...');
+
+        // Wait for the peer to fully register with the signaling server
+        await new Promise((resolve, reject) => {
+            peer.on('open', (id) => {
+                console.log('[PvP] Peer open, ID:', id);
+                resolve();
+            });
+            peer.on('error', (err) => {
+                // Only reject for fatal connection errors during startup
+                if (!peer.open) reject(err);
+            });
+            setTimeout(() => {
+                if (!peer.open) reject(new Error('Peer open timeout'));
+            }, 10000);
+        });
+
+        return peer;
     }
 
     // ---- Helper: Build O(1) form lookup map from EVOLUTION_CONFIG (called lazily) ----
@@ -3261,22 +3294,33 @@
         cleanupPvPConnection();
 
         const customId = generateAlphaID(6);
-        pvpPeer = createPeer(customId);
-        
-        pvpPeer.on('open', (id) => {
-            pvpMode = 'host';
-            showPvPScreen('host');
-            document.getElementById('challenge-my-id').textContent = id;
-            addMsg(t('msg_challenge_host_start'), 'success');
-            speakCommand('host', 'other');
-        });
+        try {
+            pvpPeer = await createPeer(customId);
+        } catch (err) {
+            console.error('[PvP] Host peer creation failed:', err);
+            if (err.message && err.message.includes('taken')) {
+                // ID collision — retry with a new ID
+                return hostChallenge();
+            }
+            addMsg(t('msg_challenge_conn_err'), 'error');
+            closeChallenge();
+            return;
+        }
+
+        pvpMode = 'host';
+        showPvPScreen('host');
+        document.getElementById('challenge-my-id').textContent = pvpPeer.id;
+        addMsg(t('msg_challenge_host_start'), 'success');
+        speakCommand('host', 'other');
 
         pvpPeer.on('connection', (conn) => {
+            console.log('[PvP] Host received connection from:', conn.peer);
             setupPvPConnection(conn);
         });
 
         pvpPeer.on('error', (err) => {
-            if (err.type === 'id-taken') {
+            console.error('[PvP] Host peer error:', err.type, err);
+            if (err.type === 'unavailable-id' || err.type === 'id-taken') {
                 hostChallenge();
             } else {
                 if (state.isChallengeMode || (battleState && battleState.active)) {
@@ -3304,26 +3348,24 @@
         }
 
         if (!pvpPeer) {
-            pvpPeer = createPeer();
-
-            // Wait for open with timeout + error handling
             try {
-                await Promise.race([
-                    new Promise((resolve, reject) => {
-                        pvpPeer.on('open', resolve);
-                        pvpPeer.on('error', reject);
-                    }),
-                    new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('timeout')), 10000)
-                    )
-                ]);
+                pvpPeer = await createPeer();
             } catch (err) {
-                console.error('[PvP] Peer open failed:', err);
+                console.error('[PvP] Joiner peer creation failed:', err);
                 addMsg(t('msg_challenge_conn_err'), 'error');
                 cleanupPvPConnection();
                 cmdInput.placeholder = 'host / join / close';
                 return;
             }
+
+            // Listen for peer-level errors (e.g. peer-unavailable)
+            pvpPeer.on('error', (err) => {
+                console.error('[PvP] Joiner peer error:', err.type, err);
+                if (state.isChallengeMode) {
+                    addMsg(t('msg_challenge_conn_err'), 'error');
+                }
+                closeChallenge();
+            });
         }
         
         pvpMode = 'join';
@@ -3331,7 +3373,8 @@
         addMsg(t('ui_pairing_challenge'), 'info');
         speakCommand('join', 'other');
 
-        const conn = pvpPeer.connect(normalizedId);
+        console.log('[PvP] Joiner connecting to:', normalizedId);
+        const conn = pvpPeer.connect(normalizedId, { reliable: true });
         setupPvPConnection(conn);
     }
 
@@ -3345,26 +3388,45 @@
 
     function setupPvPConnection(conn) {
         pvpConn = conn;
+        let hostInfoSent = false;
         
-        conn.on('open', () => {
-            console.log('Connected to peer:', conn.peer);
-            
-            // Host sends its info to the joiner first
-            if (pvpMode === 'host') {
-                conn.send({
-                    type: 'HOST_INFO',
-                    pet: serializePet()
-                });
+        // Connection timeout — if data channel never opens in 20s, give up
+        const connTimeout = setTimeout(() => {
+            if (!conn.open) {
+                console.error('[PvP] Connection timeout — data channel never opened');
+                addMsg(t('msg_challenge_conn_err'), 'error');
+                closeChallenge();
             }
+        }, 20000);
+
+        const trySendHostInfo = () => {
+            if (pvpMode === 'host' && !hostInfoSent) {
+                hostInfoSent = true;
+                console.log('[PvP] Sending HOST_INFO');
+                conn.send({ type: 'HOST_INFO', pet: serializePet() });
+            }
+        };
+
+        conn.on('open', () => {
+            clearTimeout(connTimeout);
+            console.log('[PvP] Data channel opened to peer:', conn.peer);
+            trySendHostInfo();
         });
 
+        // PeerJS race condition: connection might already be open
+        // when 'connection' event fires on the host side
+        if (conn.open) {
+            clearTimeout(connTimeout);
+            console.log('[PvP] Connection was already open (race condition handled)');
+            trySendHostInfo();
+        }
+
         conn.on('data', (data) => {
+            console.log('[PvP] Received data type:', data.type);
+
             if (data.type === 'HOST_INFO' && pvpMode === 'join') {
-                // Joiner receives host info, sends its own pet back to host
-                conn.send({
-                    type: 'JOIN_INFO',
-                    pet: serializePet()
-                });
+                console.log('[PvP] Joiner received HOST_INFO, sending JOIN_INFO');
+                conn.send({ type: 'JOIN_INFO', pet: serializePet() });
             } 
             else if (data.type === 'JOIN_INFO' && pvpMode === 'host') {
                 // Validate joiner pet data before using it
@@ -3374,40 +3436,37 @@
                     return;
                 }
 
-                // Host receives joiner info, calculates the battle, and sends final start
+                console.log('[PvP] Host received JOIN_INFO, starting battle simulation');
                 const p1Data = serializePet(); // Host
                 const p2Data = data.pet;      // Joiner
                 
                 const log = BattleEngine.simulate(p1Data, p2Data, state.battleDebug);
                 
-                conn.send({
-                    type: 'BATTLE_START',
-                    hostPet: p1Data,
-                    battleLog: log
-                });
-                
+                conn.send({ type: 'BATTLE_START', hostPet: p1Data, battleLog: log });
                 startPvPBattle(p1Data, p2Data, log, 'p1');
             }
             else if (data.type === 'BATTLE_START' && pvpMode === 'join') {
-                // Joiner receives the definitive log and host info from the host
-                const p1Data = data.hostPet;  // Host
-                const p2Data = serializePet(); // Joiner
+                console.log('[PvP] Joiner received BATTLE_START');
+                const p1Data = data.hostPet;
+                const p2Data = serializePet();
                 startPvPBattle(p1Data, p2Data, data.battleLog, 'p2');
             }
         });
 
         conn.on('close', () => {
-            // Only show warning if battle is still actively playing
+            clearTimeout(connTimeout);
+            console.log('[PvP] Connection closed');
             if (battleState && battleState.active) {
                 addMsg(t('msg_challenge_disconnected'), 'warning');
             }
-            // Avoid double-cleanup: only tear down if still connected
             if (pvpConn || pvpPeer) {
                 cleanupPvPConnection();
             }
         });
         
-        conn.on('error', () => {
+        conn.on('error', (err) => {
+            clearTimeout(connTimeout);
+            console.error('[PvP] Connection error:', err);
             if (state.isChallengeMode || (battleState && battleState.active)) {
                 addMsg(t('msg_challenge_conn_err'), 'error');
             }
